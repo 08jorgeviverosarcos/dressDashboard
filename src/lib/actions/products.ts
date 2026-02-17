@@ -4,12 +4,12 @@ import { prisma } from "@/lib/prisma";
 import { productSchema, type ProductFormData } from "@/lib/validations/product";
 import { revalidatePath } from "next/cache";
 import type { ActionResult } from "@/types";
-import type { ProductType, ProductCategory } from "@prisma/client";
+import type { ProductType } from "@prisma/client";
 
 export async function getProducts(filters?: {
   search?: string;
   type?: ProductType;
-  category?: ProductCategory;
+  categoryId?: string;
 }) {
   const where: Record<string, unknown> = { isActive: true };
 
@@ -20,11 +20,11 @@ export async function getProducts(filters?: {
     ];
   }
   if (filters?.type) where.type = filters.type;
-  if (filters?.category) where.category = filters.category;
+  if (filters?.categoryId) where.categoryId = filters.categoryId;
 
   return prisma.product.findMany({
     where,
-    include: { inventoryItems: true },
+    include: { inventoryItems: true, category: true },
     orderBy: { code: "asc" },
   });
 }
@@ -33,6 +33,7 @@ export async function getProduct(id: string) {
   return prisma.product.findUnique({
     where: { id },
     include: {
+      category: true,
       inventoryItems: { orderBy: { createdAt: "desc" } },
       orderItems: {
         include: { order: { include: { client: true } } },
@@ -59,7 +60,9 @@ export async function createProduct(data: ProductFormData): Promise<ActionResult
       code: parsed.data.code,
       name: parsed.data.name,
       type: parsed.data.type,
-      category: parsed.data.category ?? null,
+      category: parsed.data.categoryId
+        ? { connect: { id: parsed.data.categoryId } }
+        : undefined,
       salePrice: parsed.data.salePrice ?? null,
       rentalPrice: parsed.data.rentalPrice ?? null,
       cost: parsed.data.cost ?? null,
@@ -91,7 +94,9 @@ export async function updateProduct(id: string, data: ProductFormData): Promise<
       code: parsed.data.code,
       name: parsed.data.name,
       type: parsed.data.type,
-      category: parsed.data.category ?? null,
+      category: parsed.data.categoryId
+        ? { connect: { id: parsed.data.categoryId } }
+        : { disconnect: true },
       salePrice: parsed.data.salePrice ?? null,
       rentalPrice: parsed.data.rentalPrice ?? null,
       cost: parsed.data.cost ?? null,

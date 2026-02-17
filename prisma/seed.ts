@@ -17,7 +17,15 @@ async function main() {
   await prisma.order.deleteMany();
   await prisma.inventoryItem.deleteMany();
   await prisma.product.deleteMany();
+  await prisma.category.deleteMany();
   await prisma.client.deleteMany();
+
+  // ─── Categories ────────────────────────────────────
+  const catGala = await prisma.category.create({ data: { code: "GALA", name: "Gala" } });
+  const catBride = await prisma.category.create({ data: { code: "BRIDE", name: "Novia" } });
+  const catCocktail = await prisma.category.create({ data: { code: "COCKTAIL", name: "Coctel" } });
+  const catQuince = await prisma.category.create({ data: { code: "QUINCEANERA", name: "Quinceañera" } });
+  const catOther = await prisma.category.create({ data: { code: "OTHER", name: "Otro" } });
 
   // ─── Clients ───────────────────────────────────────
   const client1 = await prisma.client.create({
@@ -59,7 +67,7 @@ async function main() {
       code: "VG-001",
       name: "Vestido Gala Esmeralda",
       type: "DRESS",
-      category: "GALA",
+      category: { connect: { id: catGala.id } },
       salePrice: 2500000,
       rentalPrice: 800000,
       cost: 900000,
@@ -72,7 +80,7 @@ async function main() {
       code: "VN-001",
       name: "Vestido Novia Clásico",
       type: "DRESS",
-      category: "BRIDE",
+      category: { connect: { id: catBride.id } },
       salePrice: 5000000,
       rentalPrice: 1500000,
       cost: 1800000,
@@ -85,7 +93,7 @@ async function main() {
       code: "VC-001",
       name: "Vestido Coctel Rosa",
       type: "DRESS",
-      category: "COCKTAIL",
+      category: { connect: { id: catCocktail.id } },
       salePrice: 1200000,
       rentalPrice: 400000,
       cost: 450000,
@@ -98,7 +106,7 @@ async function main() {
       code: "VQ-001",
       name: "Vestido Quinceañera Princesa",
       type: "DRESS",
-      category: "QUINCEANERA",
+      category: { connect: { id: catQuince.id } },
       salePrice: 3500000,
       rentalPrice: 1200000,
       cost: 1300000,
@@ -111,7 +119,7 @@ async function main() {
       code: "AC-001",
       name: "Tiara Cristal",
       type: "ACCESSORY",
-      category: "OTHER",
+      category: { connect: { id: catOther.id } },
       salePrice: 350000,
       cost: 120000,
       description: "Tiara con cristales Swarovski",

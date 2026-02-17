@@ -1,7 +1,5 @@
 import { getProducts } from "@/lib/actions/products";
 import { PageHeader } from "@/components/shared/PageHeader";
-import { PRODUCT_TYPE_LABELS, PRODUCT_CATEGORY_LABELS } from "@/lib/constants/categories";
-import { formatCurrency } from "@/lib/utils";
 import type { ProductType } from "@prisma/client";
 import { ProductsTable } from "./products-table";
 

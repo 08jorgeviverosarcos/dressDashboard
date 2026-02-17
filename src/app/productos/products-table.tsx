@@ -10,10 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  PRODUCT_TYPE_LABELS,
-  PRODUCT_CATEGORY_LABELS,
-} from "@/lib/constants/categories";
+import { PRODUCT_TYPE_LABELS } from "@/lib/constants/categories";
 import { formatCurrency } from "@/lib/utils";
 
 interface Product {
@@ -21,7 +18,7 @@ interface Product {
   code: string;
   name: string;
   type: string;
-  category: string | null;
+  category: { id: string; name: string } | null;
   salePrice: number | string | null;
   rentalPrice: number | string | null;
 }
@@ -57,10 +54,7 @@ export function ProductsTable({ products, currentType }: ProductsTableProps) {
     {
       key: "category",
       header: "Categoría",
-      cell: (row) =>
-        row.category
-          ? (PRODUCT_CATEGORY_LABELS[row.category] ?? row.category)
-          : "-",
+      cell: (row) => row.category?.name ?? "-",
     },
     {
       key: "salePrice",

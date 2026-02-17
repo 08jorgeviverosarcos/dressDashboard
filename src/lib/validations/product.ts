@@ -4,7 +4,7 @@ export const productSchema = z.object({
   code: z.string().min(1, "El código es requerido"),
   name: z.string().min(1, "El nombre es requerido"),
   type: z.enum(["DRESS", "ACCESSORY", "SERVICE"]),
-  category: z.enum(["COCKTAIL", "GALA", "BRIDE", "QUINCEANERA", "CASUAL", "OTHER"]).optional().nullable(),
+  categoryId: z.string().optional().nullable(),
   salePrice: z.number().min(0, "El precio debe ser positivo").optional().nullable(),
   rentalPrice: z.number().min(0, "El precio debe ser positivo").optional().nullable(),
   cost: z.number().min(0, "El costo debe ser positivo").optional().nullable(),

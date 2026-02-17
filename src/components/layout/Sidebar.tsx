@@ -11,6 +11,7 @@ import {
   Boxes,
   CreditCard,
   Receipt,
+  Tag,
   Menu,
   X,
 } from "lucide-react";
@@ -22,6 +23,7 @@ const navItems = [
   { href: "/pedidos", label: "Pedidos", icon: ShoppingBag },
   { href: "/clientes", label: "Clientes", icon: Users },
   { href: "/productos", label: "Productos", icon: Package },
+  { href: "/categorias", label: "Categorías", icon: Tag },
   { href: "/inventario", label: "Inventario", icon: Boxes },
   { href: "/pagos", label: "Pagos", icon: CreditCard },
   { href: "/gastos", label: "Gastos", icon: Receipt },

@@ -95,14 +95,6 @@ export const PRODUCT_TYPE_LABELS: Record<string, string> = {
   SERVICE: "Servicio",
 };
 
-export const PRODUCT_CATEGORY_LABELS: Record<string, string> = {
-  COCKTAIL: "Coctel",
-  GALA: "Gala",
-  BRIDE: "Novia",
-  QUINCEANERA: "Quinceañera",
-  CASUAL: "Casual",
-  OTHER: "Otro",
-};
 
 export const INVENTORY_STATUS_LABELS: Record<string, string> = {
   AVAILABLE: "Disponible",

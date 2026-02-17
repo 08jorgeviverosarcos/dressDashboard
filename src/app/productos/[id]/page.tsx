@@ -9,7 +9,6 @@ import { Button } from "@/components/ui/button";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import {
   PRODUCT_TYPE_LABELS,
-  PRODUCT_CATEGORY_LABELS,
   INVENTORY_STATUS_LABELS,
 } from "@/lib/constants/categories";
 import { Pencil } from "lucide-react";
@@ -47,7 +46,7 @@ export default async function ProductoDetailPage({ params }: Props) {
             {product.category && (
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Categoría</span>
-                <span>{PRODUCT_CATEGORY_LABELS[product.category] ?? product.category}</span>
+                <span>{product.category.name}</span>
               </div>
             )}
             <div className="flex justify-between">
