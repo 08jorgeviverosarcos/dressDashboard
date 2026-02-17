@@ -1,0 +1,234 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Client {
+  id        String   @id @default(cuid())
+  name      String
+  phone     String?
+  email     String?
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  orders    Order[]
+}
+
+model Product {
+  id             String           @id @default(cuid())
+  code           String           @unique
+  name           String
+  type           ProductType
+  category       ProductCategory?
+  salePrice      Decimal?         @db.Decimal(12, 2)
+  rentalPrice    Decimal?         @db.Decimal(12, 2)
+  cost           Decimal?         @db.Decimal(12, 2)
+  description    String?
+  imageUrl       String?
+  isActive       Boolean          @default(true)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  inventoryItems InventoryItem[]
+  orderItems     OrderItem[]
+}
+
+model InventoryItem {
+  id             String          @id @default(cuid())
+  productId      String
+  quantityOnHand Int             @default(1)
+  status         InventoryStatus @default(AVAILABLE)
+  usageCount     Int             @default(0)
+  acquiredAt     DateTime        @default(now())
+  notes          String?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  product        Product         @relation(fields: [productId], references: [id])
+  orderItems     OrderItem[]
+
+  @@index([productId])
+  @@index([status])
+}
+
+model Order {
+  id                String      @id @default(cuid())
+  orderNumber       Int         @unique @default(autoincrement())
+  clientId          String
+  status            OrderStatus @default(QUOTE)
+  orderDate         DateTime    @default(now())
+  eventDate         DateTime?
+  deliveryDate      DateTime?
+  totalPrice        Decimal     @db.Decimal(12, 2)
+  totalCost         Decimal     @default(0) @db.Decimal(12, 2)
+  minDownpaymentPct Decimal     @default(30) @db.Decimal(5, 2)
+  notes             String?
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+  auditLogs         AuditLog[]
+  expenses          Expense[]
+  client            Client      @relation(fields: [clientId], references: [id])
+  items             OrderItem[]
+  payments          Payment[]
+  rental            Rental?
+
+  @@index([clientId])
+  @@index([status])
+  @@index([orderDate])
+}
+
+model OrderItem {
+  id              String         @id @default(cuid())
+  orderId         String
+  productId       String
+  inventoryItemId String?
+  quantity        Int            @default(1)
+  unitPrice       Decimal        @db.Decimal(12, 2)
+  costSource      CostSource     @default(MANUAL)
+  costAmount      Decimal        @default(0) @db.Decimal(12, 2)
+  notes           String?
+  inventoryItem   InventoryItem? @relation(fields: [inventoryItemId], references: [id])
+  order           Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product         Product        @relation(fields: [productId], references: [id])
+
+  @@index([orderId])
+  @@index([productId])
+}
+
+model Payment {
+  id            String        @id @default(cuid())
+  orderId       String
+  paymentDate   DateTime      @default(now())
+  amount        Decimal       @db.Decimal(12, 2)
+  paymentType   PaymentType
+  paymentMethod PaymentMethod
+  reference     String?
+  notes         String?
+  createdAt     DateTime      @default(now())
+  auditLogs     AuditLog[]
+  order         Order         @relation(fields: [orderId], references: [id])
+
+  @@index([orderId])
+  @@index([paymentDate])
+}
+
+model Expense {
+  id            String        @id @default(cuid())
+  date          DateTime
+  category      String
+  subcategory   String?
+  description   String
+  responsible   String?
+  amount        Decimal       @db.Decimal(12, 2)
+  expenseType   ExpenseType
+  paymentMethod PaymentMethod
+  orderId       String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  order         Order?        @relation(fields: [orderId], references: [id])
+
+  @@index([orderId])
+  @@index([date])
+  @@index([category])
+}
+
+model Rental {
+  id               String       @id @default(cuid())
+  orderId          String       @unique
+  pickupDate       DateTime?
+  returnDate       DateTime?
+  actualReturnDate DateTime?
+  chargedIncome    Decimal      @default(0) @db.Decimal(12, 2)
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+  order            Order        @relation(fields: [orderId], references: [id])
+  costs            RentalCost[]
+}
+
+model RentalCost {
+  id          String  @id @default(cuid())
+  rentalId    String
+  type        String
+  amount      Decimal @db.Decimal(12, 2)
+  description String?
+  rental      Rental  @relation(fields: [rentalId], references: [id], onDelete: Cascade)
+
+  @@index([rentalId])
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  entity    String
+  entityId  String
+  action    String
+  oldValue  String?
+  newValue  String?
+  metadata  Json?
+  orderId   String?
+  paymentId String?
+  createdAt DateTime @default(now())
+  order     Order?   @relation(fields: [orderId], references: [id])
+  payment   Payment? @relation(fields: [paymentId], references: [id])
+
+  @@index([entity, entityId])
+  @@index([orderId])
+}
+
+enum OrderStatus {
+  QUOTE
+  CONFIRMED
+  IN_PROGRESS
+  READY
+  DELIVERED
+  COMPLETED
+  CANCELLED
+}
+
+enum PaymentMethod {
+  CASH
+  TRANSFER
+  CARD
+  NEQUI
+  OTHER
+}
+
+enum PaymentType {
+  DOWNPAYMENT
+  INSTALLMENT
+  FINAL
+}
+
+enum CostSource {
+  INVENTORY
+  EXPENSES
+  MANUAL
+}
+
+enum ProductType {
+  DRESS
+  ACCESSORY
+  SERVICE
+}
+
+enum ProductCategory {
+  COCKTAIL
+  GALA
+  BRIDE
+  QUINCEANERA
+  CASUAL
+  OTHER
+}
+
+enum InventoryStatus {
+  AVAILABLE
+  RENTED
+  SOLD
+  IN_REPAIR
+  RETIRED
+}
+
+enum ExpenseType {
+  FIXED
+  VARIABLE
+}
