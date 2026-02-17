@@ -9,7 +9,6 @@ import { Button } from "@/components/ui/button";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import {
   PRODUCT_TYPE_LABELS,
-  INVENTORY_STATUS_LABELS,
 } from "@/lib/constants/categories";
 import { Pencil } from "lucide-react";
 

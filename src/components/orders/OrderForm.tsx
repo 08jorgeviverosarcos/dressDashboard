@@ -15,7 +15,7 @@ import { Separator } from "@/components/ui/separator";
 import { OrderItemRow } from "./OrderItemRow";
 import { formatCurrency } from "@/lib/utils";
 import { createOrder, updateOrder } from "@/lib/actions/orders";
-import type { OrderFormData, OrderItemFormData } from "@/lib/validations/order";
+import type { OrderFormData } from "@/lib/validations/order";
 import { Plus, Loader2 } from "lucide-react";
 
 interface ClientOption {

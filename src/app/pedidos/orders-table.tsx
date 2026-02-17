@@ -6,7 +6,7 @@ import { SearchInput } from "@/components/shared/SearchInput";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { Badge } from "@/components/ui/badge";
 import { ORDER_STATUS_LABELS } from "@/lib/constants/categories";
-import { formatCurrency, formatDate, toDecimalNumber } from "@/lib/utils";
+import { formatCurrency, formatDate } from "@/lib/utils";
 import { calculatePaidPercentage } from "@/lib/business/profit";
 
 interface OrderRow {

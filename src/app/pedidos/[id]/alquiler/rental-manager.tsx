@@ -16,9 +16,9 @@ import { Separator } from "@/components/ui/separator";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { createRental, updateRental, addRentalCost, deleteRentalCost } from "@/lib/actions/rentals";
 import { RENTAL_COST_TYPES } from "@/lib/constants/categories";
-import { formatCurrency, formatDate, toDecimalNumber } from "@/lib/utils";
+import { formatCurrency, toDecimalNumber } from "@/lib/utils";
 import { calculateRentalProfit } from "@/lib/business/profit";
-import { Plus, Trash2, Calendar, DollarSign } from "lucide-react";
+import { Plus, Trash2, DollarSign } from "lucide-react";
 
 interface RentalCost {
   id: string;

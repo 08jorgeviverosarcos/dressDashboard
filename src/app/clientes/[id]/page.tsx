@@ -5,7 +5,7 @@ import { PageHeader } from "@/components/shared/PageHeader";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { formatDate, formatCurrency, toDecimalNumber } from "@/lib/utils";
+import { formatDate, formatCurrency } from "@/lib/utils";
 import { calculatePaidPercentage } from "@/lib/business/profit";
 import { Pencil, Mail, Phone, FileText } from "lucide-react";
 import { DeleteClientButton } from "./delete-client-button";
