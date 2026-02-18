@@ -218,9 +218,9 @@ enum CostSource {
 }
 
 enum ProductType {
-  DRESS
-  ACCESSORY
-  SERVICE
+  RENTAL
+  SALE
+  BOTH
 }
 
 

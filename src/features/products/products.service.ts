@@ -1,10 +1,11 @@
+import type { ProductType } from "@prisma/client";
 import type { ActionResult } from "@/types";
 import type { ProductFormData } from "@/lib/validations/product";
 import * as repo from "./products.repo";
 
 export function getProducts(filters?: {
   search?: string;
-  type?: "DRESS" | "ACCESSORY" | "SERVICE";
+  type?: ProductType;
   categoryId?: string;
 }) {
   return repo.findAll(filters);

@@ -90,9 +90,9 @@ export const PAYMENT_TYPE_LABELS: Record<string, string> = {
 };
 
 export const PRODUCT_TYPE_LABELS: Record<string, string> = {
-  DRESS: "Vestido",
-  ACCESSORY: "Accesorio",
-  SERVICE: "Servicio",
+  RENTAL: "Alquiler",
+  SALE: "Venta",
+  BOTH: "Ambos",
 };
 
 

@@ -3,7 +3,7 @@ import { z } from "zod";
 export const productSchema = z.object({
   code: z.string().min(1, "El código es requerido"),
   name: z.string().min(1, "El nombre es requerido"),
-  type: z.enum(["DRESS", "ACCESSORY", "SERVICE"]),
+  type: z.enum(["RENTAL", "SALE", "BOTH"]),
   categoryId: z.string().optional().nullable(),
   salePrice: z.number().min(0, "El precio debe ser positivo").optional().nullable(),
   rentalPrice: z.number().min(0, "El precio debe ser positivo").optional().nullable(),
