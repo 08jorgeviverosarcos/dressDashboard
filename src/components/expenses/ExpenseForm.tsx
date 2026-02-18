@@ -204,10 +204,10 @@ export function ExpenseForm({ orders, initialData }: ExpenseFormProps) {
             <FormField control={form.control} name="orderId" render={({ field }) => (
               <FormItem>
                 <FormLabel>Pedido Asociado (opcional)</FormLabel>
-                <Select value={field.value ?? ""} onValueChange={field.onChange}>
+                <Select value={field.value || "none"} onValueChange={(v) => field.onChange(v === "none" ? "" : v)}>
                   <FormControl><SelectTrigger><SelectValue placeholder="Ninguno" /></SelectTrigger></FormControl>
                   <SelectContent>
-                    <SelectItem value="">Ninguno</SelectItem>
+                    <SelectItem value="none">Ninguno</SelectItem>
                     {orders.map((o) => (
                       <SelectItem key={o.id} value={o.id}>Pedido #{o.orderNumber}</SelectItem>
                     ))}
