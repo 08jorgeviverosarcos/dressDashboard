@@ -16,8 +16,12 @@ interface ExpenseRow {
   amount: number | string;
   expenseType: string;
   paymentMethod: string;
-  orderId: string | null;
-  order: { id: string; orderNumber: number } | null;
+  orderItemId: string | null;
+  orderItem: {
+    id: string;
+    product: { name: string; code: string };
+    order: { id: string; orderNumber: number };
+  } | null;
 }
 
 interface GastosTableProps {
@@ -49,11 +53,11 @@ export function GastosTable({ expenses }: GastosTableProps) {
     },
     {
       key: "order",
-      header: "Pedido",
+      header: "Pedido / Item",
       cell: (row) =>
-        row.order ? (
-          <Link href={`/pedidos/${row.order.id}`} className="text-primary hover:underline">
-            #{row.order.orderNumber}
+        row.orderItem ? (
+          <Link href={`/pedidos/${row.orderItem.order.id}`} className="text-primary hover:underline">
+            #{row.orderItem.order.orderNumber} — {row.orderItem.product.name}
           </Link>
         ) : (
           "—"

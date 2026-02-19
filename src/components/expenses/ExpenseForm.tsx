@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -7,7 +8,6 @@ import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Form, FormControl, FormField, FormItem, FormLabel, FormMessage,
 } from "@/components/ui/form";
@@ -24,9 +24,15 @@ import {
 } from "@/lib/constants/categories";
 import { Loader2 } from "lucide-react";
 
+interface OrderItemOption {
+  id: string;
+  product: { name: string; code: string };
+}
+
 interface OrderOption {
   id: string;
   orderNumber: number;
+  items: OrderItemOption[];
 }
 
 interface ExpenseFormProps {
@@ -41,12 +47,21 @@ interface ExpenseFormProps {
     amount: number;
     expenseType: string;
     paymentMethod: string;
-    orderId: string;
+    orderItemId: string;
   };
 }
 
 export function ExpenseForm({ orders, initialData }: ExpenseFormProps) {
   const router = useRouter();
+
+  const [selectedOrderId, setSelectedOrderId] = useState<string>(() => {
+    if (initialData?.orderItemId) {
+      return orders.find((o) => o.items.some((i) => i.id === initialData.orderItemId))?.id ?? "";
+    }
+    return "";
+  });
+
+  const filteredItems = orders.find((o) => o.id === selectedOrderId)?.items ?? [];
 
   const form = useForm<ExpenseFormData>({
     resolver: zodResolver(expenseSchema),
@@ -60,7 +75,7 @@ export function ExpenseForm({ orders, initialData }: ExpenseFormProps) {
           amount: initialData.amount,
           expenseType: initialData.expenseType as "FIXED" | "VARIABLE",
           paymentMethod: initialData.paymentMethod as ExpenseFormData["paymentMethod"],
-          orderId: initialData.orderId || "",
+          orderItemId: initialData.orderItemId || "",
         }
       : {
           date: new Date(),
@@ -71,7 +86,7 @@ export function ExpenseForm({ orders, initialData }: ExpenseFormProps) {
           amount: 0,
           expenseType: "VARIABLE",
           paymentMethod: "CASH",
-          orderId: "",
+          orderItemId: "",
         },
   });
 
@@ -201,11 +216,17 @@ export function ExpenseForm({ orders, initialData }: ExpenseFormProps) {
               )} />
             </div>
 
-            <FormField control={form.control} name="orderId" render={({ field }) => (
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <FormItem>
                 <FormLabel>Pedido Asociado (opcional)</FormLabel>
-                <Select value={field.value || "none"} onValueChange={(v) => field.onChange(v === "none" ? "" : v)}>
-                  <FormControl><SelectTrigger><SelectValue placeholder="Ninguno" /></SelectTrigger></FormControl>
+                <Select
+                  value={selectedOrderId || "none"}
+                  onValueChange={(v) => {
+                    setSelectedOrderId(v === "none" ? "" : v);
+                    form.setValue("orderItemId", "");
+                  }}
+                >
+                  <SelectTrigger><SelectValue placeholder="Ninguno" /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">Ninguno</SelectItem>
                     {orders.map((o) => (
@@ -213,9 +234,30 @@ export function ExpenseForm({ orders, initialData }: ExpenseFormProps) {
                     ))}
                   </SelectContent>
                 </Select>
-                <FormMessage />
               </FormItem>
-            )} />
+
+              <FormField control={form.control} name="orderItemId" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Item del Pedido (opcional)</FormLabel>
+                  <Select
+                    value={field.value || "none"}
+                    onValueChange={(v) => field.onChange(v === "none" ? "" : v)}
+                    disabled={!selectedOrderId || filteredItems.length === 0}
+                  >
+                    <FormControl><SelectTrigger><SelectValue placeholder="Seleccionar item..." /></SelectTrigger></FormControl>
+                    <SelectContent>
+                      <SelectItem value="none">Ninguno</SelectItem>
+                      {filteredItems.map((item) => (
+                        <SelectItem key={item.id} value={item.id}>
+                          {item.product.code} — {item.product.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )} />
+            </div>
 
             <div className="flex justify-end gap-3 pt-4">
               <Button type="button" variant="outline" onClick={() => router.push("/gastos")}>Cancelar</Button>

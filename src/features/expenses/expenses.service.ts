@@ -2,6 +2,14 @@ import type { ActionResult } from "@/types";
 import type { ExpenseFormData } from "@/lib/validations/expense";
 import * as repo from "./expenses.repo";
 
+type CreateExpenseResult =
+  | { success: true; data: { id: string }; orderId?: string }
+  | { success: false; error: string };
+
+type UpdateExpenseResult =
+  | { success: true; data: undefined; orderId?: string }
+  | { success: false; error: string };
+
 export function getExpenses(filters?: {
   search?: string;
   category?: string;
@@ -18,7 +26,9 @@ export function getExpense(id: string) {
 
 export async function createExpense(
   parsed: ExpenseFormData
-): Promise<ActionResult<{ id: string }>> {
+): Promise<CreateExpenseResult> {
+  const orderItemId = parsed.orderItemId || null;
+
   const expense = await repo.create({
     date: parsed.date,
     category: parsed.category,
@@ -28,16 +38,24 @@ export async function createExpense(
     amount: parsed.amount,
     expenseType: parsed.expenseType,
     paymentMethod: parsed.paymentMethod,
-    orderId: parsed.orderId || null,
+    orderItemId,
   });
 
-  return { success: true, data: { id: expense.id } };
+  let orderId: string | undefined;
+  if (orderItemId) {
+    const orderItem = await repo.findOrderIdByOrderItemId(orderItemId);
+    orderId = orderItem?.orderId ?? undefined;
+  }
+
+  return { success: true, data: { id: expense.id }, orderId };
 }
 
 export async function updateExpense(
   id: string,
   parsed: ExpenseFormData
-): Promise<ActionResult> {
+): Promise<UpdateExpenseResult> {
+  const orderItemId = parsed.orderItemId || null;
+
   await repo.update(id, {
     date: parsed.date,
     category: parsed.category,
@@ -47,10 +65,16 @@ export async function updateExpense(
     amount: parsed.amount,
     expenseType: parsed.expenseType,
     paymentMethod: parsed.paymentMethod,
-    orderId: parsed.orderId || null,
+    orderItemId,
   });
 
-  return { success: true, data: undefined };
+  let orderId: string | undefined;
+  if (orderItemId) {
+    const orderItem = await repo.findOrderIdByOrderItemId(orderItemId);
+    orderId = orderItem?.orderId ?? undefined;
+  }
+
+  return { success: true, data: undefined, orderId };
 }
 
 export async function deleteExpense(id: string): Promise<ActionResult> {

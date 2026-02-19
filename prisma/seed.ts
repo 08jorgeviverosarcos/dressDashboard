@@ -245,6 +245,8 @@ async function main() {
     },
   });
 
+  const order1Item = await prisma.orderItem.findFirst({ where: { orderId: order1.id } });
+
   // Order 2: In progress (rental)
   const order2 = await prisma.order.create({
     data: {
@@ -288,6 +290,8 @@ async function main() {
       },
     },
   });
+
+  const order2Item = await prisma.orderItem.findFirst({ where: { orderId: order2.id } });
 
   // Order 3: Quote (quinceañera)
   await prisma.order.create({
@@ -391,7 +395,7 @@ async function main() {
         amount: 450000,
         expenseType: "VARIABLE",
         paymentMethod: "CASH",
-        orderId: order1.id,
+        orderItemId: order1Item!.id,
       },
       {
         date: new Date("2025-02-01"),
@@ -432,7 +436,7 @@ async function main() {
         amount: 800000,
         expenseType: "VARIABLE",
         paymentMethod: "CARD",
-        orderId: order2.id,
+        orderItemId: order2Item!.id,
       },
     ],
   });

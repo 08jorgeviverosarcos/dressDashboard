@@ -27,8 +27,11 @@ export async function createExpense(data: ExpenseFormData): Promise<ActionResult
   }
 
   const result = await service.createExpense(parsed.data);
-  if (result.success) revalidatePath("/gastos");
-  return result;
+  if (result.success) {
+    revalidatePath("/gastos");
+    if (result.orderId) revalidatePath(`/pedidos/${result.orderId}`);
+  }
+  return { success: result.success, data: result.success ? result.data : undefined } as ActionResult<{ id: string }>;
 }
 
 export async function updateExpense(id: string, data: ExpenseFormData): Promise<ActionResult> {
@@ -41,8 +44,9 @@ export async function updateExpense(id: string, data: ExpenseFormData): Promise<
   if (result.success) {
     revalidatePath("/gastos");
     revalidatePath(`/gastos/${id}`);
+    if (result.orderId) revalidatePath(`/pedidos/${result.orderId}`);
   }
-  return result;
+  return { success: result.success, data: undefined } as ActionResult;
 }
 
 export async function deleteExpense(id: string): Promise<ActionResult> {

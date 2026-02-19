@@ -9,7 +9,7 @@ export const expenseSchema = z.object({
   amount: z.number().positive("El monto debe ser mayor a 0"),
   expenseType: z.enum(["FIXED", "VARIABLE"]),
   paymentMethod: z.enum(["CASH", "TRANSFER", "CARD", "NEQUI", "OTHER"]),
-  orderId: z.string().optional().nullable().or(z.literal("")),
+  orderItemId: z.string().optional().nullable().or(z.literal("")),
 });
 
 export type ExpenseFormData = z.infer<typeof expenseSchema>;

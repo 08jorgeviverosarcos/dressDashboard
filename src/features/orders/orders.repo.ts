@@ -40,9 +40,14 @@ export function findById(id: string) {
     where: { id },
     include: {
       client: true,
-      items: { include: { product: true, inventoryItem: true } },
+      items: {
+        include: {
+          product: true,
+          inventoryItem: true,
+          expenses: { orderBy: { date: "desc" } },
+        },
+      },
       payments: { orderBy: { paymentDate: "asc" } },
-      expenses: { orderBy: { date: "desc" } },
       rental: { include: { costs: true } },
       auditLogs: { orderBy: { createdAt: "desc" } },
     },

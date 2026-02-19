@@ -1,6 +1,16 @@
 import { prisma } from "@/lib/prisma";
 import type { ExpenseType, PaymentMethod } from "@prisma/client";
 
+const orderItemInclude = {
+  orderItem: {
+    select: {
+      id: true,
+      product: { select: { name: true, code: true } },
+      order: { select: { id: true, orderNumber: true } },
+    },
+  },
+} as const;
+
 export function findAll(filters?: {
   search?: string;
   category?: string;
@@ -28,7 +38,7 @@ export function findAll(filters?: {
 
   return prisma.expense.findMany({
     where,
-    include: { order: { select: { id: true, orderNumber: true } } },
+    include: orderItemInclude,
     orderBy: { date: "desc" },
   });
 }
@@ -36,7 +46,7 @@ export function findAll(filters?: {
 export function findById(id: string) {
   return prisma.expense.findUnique({
     where: { id },
-    include: { order: { select: { id: true, orderNumber: true } } },
+    include: orderItemInclude,
   });
 }
 
@@ -49,7 +59,7 @@ export function create(data: {
   amount: number;
   expenseType: ExpenseType;
   paymentMethod: PaymentMethod;
-  orderId: string | null;
+  orderItemId: string | null;
 }) {
   return prisma.expense.create({ data });
 }
@@ -65,7 +75,7 @@ export function update(
     amount: number;
     expenseType: ExpenseType;
     paymentMethod: PaymentMethod;
-    orderId: string | null;
+    orderItemId: string | null;
   }
 ) {
   return prisma.expense.update({ where: { id }, data });
@@ -73,4 +83,11 @@ export function update(
 
 export function deleteById(id: string) {
   return prisma.expense.delete({ where: { id } });
+}
+
+export function findOrderIdByOrderItemId(orderItemId: string) {
+  return prisma.orderItem.findUnique({
+    where: { id: orderItemId },
+    select: { orderId: true },
+  });
 }

@@ -19,7 +19,14 @@ export default async function EditarGastoPage({ params }: Props) {
     <div className="space-y-6">
       <PageHeader title="Editar Gasto" backHref="/gastos" />
       <ExpenseForm
-        orders={orders.map((o) => ({ id: o.id, orderNumber: o.orderNumber }))}
+        orders={orders.map((o) => ({
+          id: o.id,
+          orderNumber: o.orderNumber,
+          items: o.items.map((i) => ({
+            id: i.id,
+            product: { name: i.product.name, code: i.product.code },
+          })),
+        }))}
         initialData={{
           id: expense.id,
           date: expense.date.toISOString().split("T")[0],
@@ -30,7 +37,7 @@ export default async function EditarGastoPage({ params }: Props) {
           amount: toDecimalNumber(expense.amount),
           expenseType: expense.expenseType,
           paymentMethod: expense.paymentMethod,
-          orderId: expense.orderId ?? "",
+          orderItemId: expense.orderItemId ?? "",
         }}
       />
     </div>

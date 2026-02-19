@@ -191,10 +191,12 @@ export default async function PedidoDetailPage({ params }: Props) {
       </Card>
 
       {/* Linked Expenses */}
-      {order.expenses.length > 0 && (
+      {order.items.some((item) => item.expenses.length > 0) && (
         <Card>
           <CardHeader>
-            <CardTitle>Gastos Vinculados ({order.expenses.length})</CardTitle>
+            <CardTitle>
+              Gastos Vinculados ({order.items.reduce((sum, item) => sum + item.expenses.length, 0)})
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="rounded-md border">
@@ -204,18 +206,22 @@ export default async function PedidoDetailPage({ params }: Props) {
                     <th className="p-3 text-left font-medium">Fecha</th>
                     <th className="p-3 text-left font-medium">Categoría</th>
                     <th className="p-3 text-left font-medium">Descripción</th>
+                    <th className="p-3 text-left font-medium">Producto</th>
                     <th className="p-3 text-right font-medium">Monto</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {order.expenses.map((expense) => (
-                    <tr key={expense.id} className="border-b">
-                      <td className="p-3">{formatDate(expense.date)}</td>
-                      <td className="p-3">{expense.category}</td>
-                      <td className="p-3">{expense.description}</td>
-                      <td className="p-3 text-right">{formatCurrency(expense.amount)}</td>
-                    </tr>
-                  ))}
+                  {order.items.flatMap((item) =>
+                    item.expenses.map((expense) => (
+                      <tr key={expense.id} className="border-b">
+                        <td className="p-3">{formatDate(expense.date)}</td>
+                        <td className="p-3">{expense.category}</td>
+                        <td className="p-3">{expense.description}</td>
+                        <td className="p-3 text-muted-foreground">{item.product.name}</td>
+                        <td className="p-3 text-right">{formatCurrency(expense.amount)}</td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>
