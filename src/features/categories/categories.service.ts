@@ -1,8 +1,8 @@
 import type { ActionResult } from "@/types";
 import * as repo from "./categories.repo";
 
-export function getCategories() {
-  return repo.findAll();
+export function getCategories(filters?: { search?: string }) {
+  return repo.findAll(filters);
 }
 
 export function getCategory(id: string) {

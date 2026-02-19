@@ -46,3 +46,7 @@ export async function deleteInventoryItem(id: string): Promise<ActionResult> {
   if (result.success) revalidatePath("/inventario");
   return result;
 }
+
+export async function getInventoryItem(id: string) {
+  return service.getInventoryItem(id);
+}

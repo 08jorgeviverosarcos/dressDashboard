@@ -1,13 +1,19 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
+import { toast } from "sonner";
 import { DataTable, type Column } from "@/components/shared/DataTable";
 import { SearchInput } from "@/components/shared/SearchInput";
+import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { ORDER_STATUS_LABELS } from "@/lib/constants/categories";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { calculatePaidPercentage } from "@/lib/business/profit";
+import { deleteOrder } from "@/lib/actions/orders";
+import { Trash2 } from "lucide-react";
 
 interface OrderRow {
   id: string;
@@ -30,7 +36,23 @@ export function OrdersTable({ orders, currentStatus }: OrdersTableProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+
   const statusFilters = ["ALL", ...Object.keys(ORDER_STATUS_LABELS)];
+
+  async function handleDelete() {
+    if (!deletingId) return;
+    setDeleteLoading(true);
+    const result = await deleteOrder(deletingId);
+    setDeleteLoading(false);
+    setDeletingId(null);
+    if (result.success) {
+      toast.success("Pedido eliminado");
+    } else {
+      toast.error(result.error);
+    }
+  }
 
   function handleStatusFilter(status: string) {
     const params = new URLSearchParams(searchParams.toString());
@@ -64,9 +86,29 @@ export function OrdersTable({ orders, currentStatus }: OrdersTableProps) {
       },
     },
     { key: "status", header: "Estado", cell: (row) => <StatusBadge status={row.status} /> },
+    {
+      key: "actions",
+      header: "",
+      cell: (row) => (
+        <div className="flex justify-end">
+          <Button
+            size="sm"
+            variant="ghost"
+            className="text-destructive hover:text-destructive"
+            onClick={(e) => {
+              e.stopPropagation();
+              setDeletingId(row.id);
+            }}
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        </div>
+      ),
+    },
   ];
 
   return (
+    <>
     <div className="space-y-4">
       <div className="flex items-center gap-4">
         <div className="flex-1">
@@ -94,5 +136,16 @@ export function OrdersTable({ orders, currentStatus }: OrdersTableProps) {
         emptyMessage="No se encontraron pedidos"
       />
     </div>
+    <ConfirmDialog
+      open={!!deletingId}
+      onOpenChange={(open) => !open && setDeletingId(null)}
+      title="Eliminar pedido"
+      description="¿Estás seguro de que deseas eliminar este pedido? Se eliminarán también sus pagos y datos de renta. Esta acción no se puede deshacer."
+      confirmLabel="Eliminar"
+      variant="destructive"
+      onConfirm={handleDelete}
+      loading={deleteLoading}
+    />
+    </>
   );
 }

@@ -10,8 +10,13 @@ export async function getPayments(filters?: {
   startDate?: Date;
   endDate?: Date;
   paymentMethod?: string;
+  search?: string;
 }) {
   return service.getPayments(filters);
+}
+
+export async function getPayment(id: string) {
+  return service.getPayment(id);
 }
 
 export async function createPayment(data: PaymentFormData): Promise<ActionResult<{ id: string }>> {

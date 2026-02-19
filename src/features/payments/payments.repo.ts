@@ -6,6 +6,7 @@ export function findAll(filters?: {
   startDate?: Date;
   endDate?: Date;
   paymentMethod?: string;
+  search?: string;
 }) {
   const where: Record<string, unknown> = {};
 
@@ -16,6 +17,13 @@ export function findAll(filters?: {
       ...(filters.startDate && { gte: filters.startDate }),
       ...(filters.endDate && { lte: filters.endDate }),
     };
+  }
+  if (filters?.search) {
+    const asNumber = parseInt(filters.search);
+    where.OR = [
+      { order: { client: { name: { contains: filters.search, mode: "insensitive" } } } },
+      ...(!isNaN(asNumber) ? [{ order: { orderNumber: { equals: asNumber } } }] : []),
+    ];
   }
 
   return prisma.payment.findMany({
@@ -96,6 +104,13 @@ export function createPaymentAuditLog(
 
 export function findById(id: string) {
   return prisma.payment.findUnique({ where: { id } });
+}
+
+export function findByIdWithOrder(id: string) {
+  return prisma.payment.findUnique({
+    where: { id },
+    include: { order: { include: { client: true } } },
+  });
 }
 
 export function deleteById(id: string) {

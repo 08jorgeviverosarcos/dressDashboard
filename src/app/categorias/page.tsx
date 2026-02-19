@@ -2,8 +2,13 @@ import { getCategories } from "@/lib/actions/categories";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { CategoriesTable } from "./categories-table";
 
-export default async function CategoriasPage() {
-  const categories = await getCategories();
+interface Props {
+  searchParams: Promise<{ search?: string }>;
+}
+
+export default async function CategoriasPage({ searchParams }: Props) {
+  const params = await searchParams;
+  const categories = await getCategories({ search: params.search });
 
   return (
     <div className="space-y-6">

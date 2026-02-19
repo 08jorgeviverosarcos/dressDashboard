@@ -43,13 +43,13 @@ interface ProductOption {
   name: string;
 }
 
-interface InventoryPageClientProps {
+interface InventoryTableProps {
   items: InventoryRow[];
   products: ProductOption[];
   currentStatus?: string;
 }
 
-export function InventoryPageClient({ items, products, currentStatus }: InventoryPageClientProps) {
+export function InventoryTable({ items, products, currentStatus }: InventoryTableProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -132,7 +132,7 @@ export function InventoryPageClient({ items, products, currentStatus }: Inventor
           value={row.status}
           onValueChange={(v) => handleStatusChange(row.id, v as InventoryStatus)}
         >
-          <SelectTrigger className="h-8 w-[140px]">
+          <SelectTrigger className="h-8 w-[140px]" onClick={(e) => e.stopPropagation()}>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -182,7 +182,12 @@ export function InventoryPageClient({ items, products, currentStatus }: Inventor
         ))}
       </div>
 
-      <DataTable columns={columns} data={items} emptyMessage="No hay items en inventario" />
+      <DataTable
+        columns={columns}
+        data={items}
+        onRowClick={(row) => router.push(`/inventario/${row.id}`)}
+        emptyMessage="No hay items en inventario"
+      />
 
       {/* Add Dialog */}
       <Dialog open={addOpen} onOpenChange={setAddOpen}>

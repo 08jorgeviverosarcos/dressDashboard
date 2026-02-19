@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { DataTable, type Column } from "@/components/shared/DataTable";
+import { SearchInput } from "@/components/shared/SearchInput";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { deleteCategory } from "@/lib/actions/categories";
@@ -81,11 +82,15 @@ export function CategoriesTable({ categories }: CategoriesTableProps) {
 
   return (
     <>
-      <DataTable
-        columns={columns}
-        data={categories}
-        emptyMessage="No hay categorías registradas"
-      />
+      <div className="space-y-4">
+        <SearchInput placeholder="Buscar por nombre o código..." />
+        <DataTable
+          columns={columns}
+          data={categories}
+          onRowClick={(row) => router.push(`/categorias/${row.id}`)}
+          emptyMessage="No hay categorías registradas"
+        />
+      </div>
       <ConfirmDialog
         open={!!deletingId}
         onOpenChange={(open) => !open && setDeletingId(null)}

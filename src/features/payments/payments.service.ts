@@ -10,8 +10,13 @@ export function getPayments(filters?: {
   startDate?: Date;
   endDate?: Date;
   paymentMethod?: string;
+  search?: string;
 }) {
   return repo.findAll(filters);
+}
+
+export function getPayment(id: string) {
+  return repo.findByIdWithOrder(id);
 }
 
 export async function createPayment(

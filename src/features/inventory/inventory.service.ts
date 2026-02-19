@@ -54,3 +54,7 @@ export async function deleteInventoryItem(id: string): Promise<ActionResult> {
   await repo.deleteById(id);
   return { success: true, data: undefined };
 }
+
+export function getInventoryItem(id: string) {
+  return repo.findById(id);
+}

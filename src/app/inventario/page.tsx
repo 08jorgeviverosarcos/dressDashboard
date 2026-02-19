@@ -1,7 +1,7 @@
 import { getInventoryItems } from "@/lib/actions/inventory";
 import { getProducts } from "@/lib/actions/products";
 import { PageHeader } from "@/components/shared/PageHeader";
-import { InventoryPageClient } from "@/components/inventory/InventoryPageClient";
+import { InventoryTable } from "./inventory-table";
 import type { InventoryStatus } from "@prisma/client";
 
 interface Props {
@@ -22,7 +22,7 @@ export default async function InventarioPage({ searchParams }: Props) {
   return (
     <div className="space-y-6">
       <PageHeader title="Inventario" description="Gestiona el inventario de productos" />
-      <InventoryPageClient
+      <InventoryTable
         items={JSON.parse(JSON.stringify(items))}
         products={products.map((p) => ({ id: p.id, code: p.code, name: p.name }))}
         currentStatus={params.status}

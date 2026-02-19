@@ -1,6 +1,5 @@
 import { getExpenses } from "@/lib/actions/expenses";
 import { PageHeader } from "@/components/shared/PageHeader";
-import { SearchInput } from "@/components/shared/SearchInput";
 import { GastosTable } from "./gastos-table";
 import type { ExpenseType } from "@prisma/client";
 
@@ -24,7 +23,6 @@ export default async function GastosPage({ searchParams }: Props) {
         actionLabel="Nuevo Gasto"
         actionHref="/gastos/nuevo"
       />
-      <SearchInput placeholder="Buscar por descripción, categoría..." />
       <GastosTable expenses={JSON.parse(JSON.stringify(expenses))} />
     </div>
   );

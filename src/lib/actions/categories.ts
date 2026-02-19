@@ -5,8 +5,8 @@ import { revalidatePath } from "next/cache";
 import type { ActionResult } from "@/types";
 import * as service from "@/features/categories/categories.service";
 
-export async function getCategories() {
-  return service.getCategories();
+export async function getCategories(filters?: { search?: string }) {
+  return service.getCategories(filters);
 }
 
 export async function getCategory(id: string) {

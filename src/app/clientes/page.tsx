@@ -1,6 +1,5 @@
 import { getClients } from "@/lib/actions/clients";
 import { PageHeader } from "@/components/shared/PageHeader";
-import { SearchInput } from "@/components/shared/SearchInput";
 import { ClientsTable } from "./clients-table";
 
 interface ClientesPageProps {
@@ -18,8 +17,6 @@ export default async function ClientesPage({ searchParams }: ClientesPageProps) 
         actionLabel="Nuevo Cliente"
         actionHref="/clientes/nuevo"
       />
-
-      <SearchInput placeholder="Buscar por nombre, tel\u00e9fono o email..." />
 
       <ClientsTable clients={clients} />
     </div>

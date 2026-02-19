@@ -1,7 +1,16 @@
 import { prisma } from "@/lib/prisma";
 
-export function findAll() {
+export function findAll(filters?: { search?: string }) {
+  const where = filters?.search
+    ? {
+        OR: [
+          { name: { contains: filters.search, mode: "insensitive" as const } },
+          { code: { contains: filters.search, mode: "insensitive" as const } },
+        ],
+      }
+    : {};
   return prisma.category.findMany({
+    where,
     orderBy: { name: "asc" },
   });
 }

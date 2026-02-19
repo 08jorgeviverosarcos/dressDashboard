@@ -53,3 +53,9 @@ export async function updateOrderStatus(
   }
   return result;
 }
+
+export async function deleteOrder(id: string): Promise<ActionResult> {
+  const result = await service.deleteOrder(id);
+  if (result.success) revalidatePath("/pedidos");
+  return result;
+}

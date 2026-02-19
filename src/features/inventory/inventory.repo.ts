@@ -61,3 +61,10 @@ export function deleteById(id: string) {
 export function countLinkedOrders(id: string) {
   return prisma.orderItem.count({ where: { inventoryItemId: id } });
 }
+
+export function findById(id: string) {
+  return prisma.inventoryItem.findUnique({
+    where: { id },
+    include: { product: true },
+  });
+}

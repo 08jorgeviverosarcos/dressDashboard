@@ -61,3 +61,8 @@ export async function updateOrderStatus(
 
   return { success: true, data: undefined };
 }
+
+export async function deleteOrder(id: string): Promise<ActionResult> {
+  await repo.deleteWithCascade(id);
+  return { success: true, data: undefined };
+}

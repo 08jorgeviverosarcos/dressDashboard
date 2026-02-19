@@ -152,3 +152,14 @@ export function updateStatusInTransaction(
     }),
   ]);
 }
+
+export function deleteWithCascade(id: string) {
+  return prisma.$transaction(async (tx) => {
+    await tx.payment.deleteMany({ where: { orderId: id } });
+    const rental = await tx.rental.findUnique({ where: { orderId: id } });
+    if (rental) {
+      await tx.rental.delete({ where: { id: rental.id } });
+    }
+    await tx.order.delete({ where: { id } });
+  });
+}
