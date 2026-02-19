@@ -8,7 +8,7 @@ export const expenseSchema = z.object({
   responsible: z.string().optional().or(z.literal("")),
   amount: z.number().positive("El monto debe ser mayor a 0"),
   expenseType: z.enum(["FIXED", "VARIABLE"]),
-  paymentMethod: z.enum(["CASH", "TRANSFER", "CARD", "NEQUI", "OTHER"]),
+  paymentMethod: z.enum(["BANCOLOMBIA", "NEQUI", "DAVIPLATA", "DAVIVIENDA", "BOLD_CARD", "CREDIBANCO", "CASH", "OTHER"]),
   orderItemId: z.string().optional().nullable().or(z.literal("")),
 });
 

@@ -198,10 +198,13 @@ enum OrderStatus {
 }
 
 enum PaymentMethod {
-  CASH
-  TRANSFER
-  CARD
+  BANCOLOMBIA
   NEQUI
+  DAVIPLATA
+  DAVIVIENDA
+  BOLD_CARD
+  CREDIBANCO
+  CASH
   OTHER
 }
 

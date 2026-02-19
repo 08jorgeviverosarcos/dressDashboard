@@ -76,10 +76,13 @@ export const ORDER_STATUS_LABELS: Record<string, string> = {
 };
 
 export const PAYMENT_METHOD_LABELS: Record<string, string> = {
-  CASH: "Efectivo",
-  TRANSFER: "Transferencia",
-  CARD: "Tarjeta",
+  BANCOLOMBIA: "Bancolombia",
   NEQUI: "Nequi",
+  DAVIPLATA: "DaviPlata",
+  DAVIVIENDA: "Davivienda",
+  BOLD_CARD: "Bold/Tarjeta",
+  CREDIBANCO: "CrediBanco",
+  CASH: "Efectvo",
   OTHER: "Otro",
 };
 

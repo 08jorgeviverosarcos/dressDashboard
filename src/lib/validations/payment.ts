@@ -5,7 +5,7 @@ export const paymentSchema = z.object({
   paymentDate: z.date(),
   amount: z.number().positive("El monto debe ser mayor a 0"),
   paymentType: z.enum(["DOWNPAYMENT", "INSTALLMENT", "FINAL"]),
-  paymentMethod: z.enum(["CASH", "TRANSFER", "CARD", "NEQUI", "OTHER"]),
+  paymentMethod: z.enum(["BANCOLOMBIA", "NEQUI", "DAVIPLATA", "DAVIVIENDA", "BOLD_CARD", "CREDIBANCO", "CASH", "OTHER"]),
   reference: z.string().optional().or(z.literal("")),
   notes: z.string().optional().or(z.literal("")),
 });
