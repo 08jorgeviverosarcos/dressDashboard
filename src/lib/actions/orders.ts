@@ -1,6 +1,6 @@
 "use server";
 
-import { orderSchema, type OrderFormData } from "@/lib/validations/order";
+import { orderSchema, orderItemSchema, type OrderFormData } from "@/lib/validations/order";
 import { revalidatePath } from "next/cache";
 import type { ActionResult } from "@/types";
 import type { OrderStatus } from "@prisma/client";
@@ -57,5 +57,35 @@ export async function updateOrderStatus(
 export async function deleteOrder(id: string): Promise<ActionResult> {
   const result = await service.deleteOrder(id);
   if (result.success) revalidatePath("/pedidos");
+  return result;
+}
+
+export async function getOrderItem(id: string) {
+  return service.getOrderItem(id);
+}
+
+export async function deleteOrderItem(id: string): Promise<ActionResult<{ orderId: string }>> {
+  const result = await service.deleteOrderItem(id);
+  if (result.success) {
+    revalidatePath("/pedidos");
+    revalidatePath(`/pedidos/${result.data.orderId}`);
+  }
+  return result;
+}
+
+export async function updateOrderItem(
+  id: string,
+  data: unknown
+): Promise<ActionResult<{ orderId: string }>> {
+  const parsed = orderItemSchema.safeParse(data);
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0].message };
+  }
+
+  const result = await service.updateOrderItem(id, parsed.data);
+  if (result.success) {
+    revalidatePath("/pedidos");
+    revalidatePath(`/pedidos/${result.data.orderId}`);
+  }
   return result;
 }

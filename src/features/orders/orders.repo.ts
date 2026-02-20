@@ -223,3 +223,87 @@ export function deleteWithCascade(id: string) {
     await tx.order.delete({ where: { id } });
   });
 }
+
+export function findOrderItemById(id: string) {
+  return prisma.orderItem.findUnique({
+    where: { id },
+    include: {
+      product: true,
+      inventoryItem: true,
+      expenses: { orderBy: { date: "desc" } },
+      rental: { include: { costs: { orderBy: { type: "asc" } } } },
+      order: {
+        select: {
+          id: true,
+          orderNumber: true,
+          clientId: true,
+        },
+      },
+    },
+  });
+}
+
+export function findOrderItemForDeletion(id: string) {
+  return prisma.orderItem.findUnique({
+    where: { id },
+    include: {
+      rental: { select: { id: true } },
+      order: {
+        include: {
+          items: true,
+        },
+      },
+    },
+  });
+}
+
+export function updateOrderItemInTransaction(
+  orderItemId: string,
+  orderId: string,
+  itemData: {
+    productId: string | null;
+    inventoryItemId: string | null;
+    itemType: "SALE" | "RENTAL" | "SERVICE";
+    name: string;
+    description: string | null;
+    quantity: number;
+    unitPrice: number;
+    discountType: "FIXED" | "PERCENTAGE" | null;
+    discountValue: number | null;
+    costSource: "INVENTORY" | "EXPENSES" | "MANUAL";
+    costAmount: number;
+    notes: string | null;
+  },
+  newTotalPrice: number,
+  newTotalCost: number
+) {
+  return prisma.$transaction(async (tx) => {
+    await tx.orderItem.update({
+      where: { id: orderItemId },
+      data: itemData,
+    });
+    await tx.order.update({
+      where: { id: orderId },
+      data: { totalPrice: newTotalPrice, totalCost: newTotalCost },
+    });
+  });
+}
+
+export function deleteOrderItemAndUpdateTotals(
+  orderItemId: string,
+  orderId: string,
+  rentalId: string | null,
+  newTotalPrice: number,
+  newTotalCost: number
+) {
+  return prisma.$transaction(async (tx) => {
+    if (rentalId) {
+      await tx.rental.delete({ where: { id: rentalId } });
+    }
+    await tx.orderItem.delete({ where: { id: orderItemId } });
+    await tx.order.update({
+      where: { id: orderId },
+      data: { totalPrice: newTotalPrice, totalCost: newTotalCost },
+    });
+  });
+}
