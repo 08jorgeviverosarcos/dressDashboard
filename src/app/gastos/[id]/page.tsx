@@ -73,7 +73,7 @@ export default async function GastoDetailPage({ params }: Props) {
                 href={`/pedidos/${expense.orderItem.order.id}`}
                 className="text-primary hover:underline"
               >
-                #{expense.orderItem.order.orderNumber} — {expense.orderItem.product.name}
+                #{expense.orderItem.order.orderNumber} — {expense.orderItem.name || expense.orderItem.product?.name}
               </Link>
             </div>
           )}

@@ -15,8 +15,11 @@ export default async function NuevoPedidoPage() {
           id: p.id,
           code: p.code,
           name: p.name,
+          type: p.type,
           salePrice: p.salePrice ? Number(p.salePrice) : null,
+          rentalPrice: p.rentalPrice ? Number(p.rentalPrice) : null,
           cost: p.cost ? Number(p.cost) : null,
+          description: p.description ?? null,
         }))}
       />
     </div>

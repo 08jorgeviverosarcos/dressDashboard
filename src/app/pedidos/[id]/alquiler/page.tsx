@@ -14,7 +14,10 @@ export default async function AlquilerPage({ params }: Props) {
   const order = await getOrder(id);
 
   if (!order) return notFound();
-  const selectedOrderItemId = order.items.find((item) => !!item.rental)?.id ?? order.items[0]?.id ?? null;
+
+  const rentalItems = order.items.filter((item) => item.itemType === "RENTAL");
+  const selectedOrderItemId =
+    rentalItems.find((item) => !!item.rental)?.id ?? rentalItems[0]?.id ?? null;
   const rental = selectedOrderItemId ? await getRental(selectedOrderItemId) : null;
 
   return (

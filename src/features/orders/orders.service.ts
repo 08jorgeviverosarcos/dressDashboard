@@ -3,6 +3,7 @@ import type { OrderFormData } from "@/lib/validations/order";
 import type { OrderStatus } from "@prisma/client";
 import { canTransitionTo } from "@/lib/business/status";
 import * as repo from "./orders.repo";
+import * as rentalRepo from "@/features/rentals/rentals.repo";
 
 export function getOrders(filters?: { search?: string; status?: OrderStatus }) {
   return repo.findAll(filters);
@@ -18,6 +19,23 @@ export async function createOrder(
   const { items, ...orderData } = parsed;
 
   const order = await repo.create(orderData, items);
+
+  // Crear Rentals para items tipo RENTAL
+  for (const item of items) {
+    if (item.itemType === "RENTAL") {
+      const createdItem = order.items.find(
+        (oi) => oi.productId === item.productId && oi.itemType === "RENTAL"
+      );
+      if (createdItem) {
+        await rentalRepo.create({
+          orderItemId: createdItem.id,
+          pickupDate: item.rentalPickupDate ?? null,
+          returnDate: item.rentalReturnDate ?? null,
+          chargedIncome: 0,
+        });
+      }
+    }
+  }
 
   await repo.createAuditLog({
     entity: "Order",

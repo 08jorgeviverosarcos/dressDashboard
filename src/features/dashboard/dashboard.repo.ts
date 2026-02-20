@@ -79,7 +79,7 @@ export async function getOrderItemRevenue(limit: number) {
   });
 
   const productDetails = await prisma.product.findMany({
-    where: { id: { in: products.map((p) => p.productId) } },
+    where: { id: { in: products.map((p) => p.productId).filter((id): id is string => id !== null) } },
   });
 
   return { products, productDetails };

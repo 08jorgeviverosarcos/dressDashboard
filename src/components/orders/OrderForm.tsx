@@ -27,8 +27,11 @@ interface ProductOption {
   id: string;
   code: string;
   name: string;
+  type: string;
   salePrice: number | null;
+  rentalPrice: number | null;
   cost: number | null;
+  description: string | null;
 }
 
 interface OrderFormProps {
@@ -43,15 +46,34 @@ interface OrderFormProps {
     minDownpaymentPct: number;
     notes: string;
     items: {
+      itemType: string;
       productId: string;
+      name: string;
+      description: string;
       quantity: number;
       unitPrice: number;
+      discountType: string | null;
+      discountValue: number | null;
       costAmount: number;
+      rentalPickupDate: string;
+      rentalReturnDate: string;
     }[];
   };
 }
 
-const emptyItem = { productId: "", quantity: 1, unitPrice: 0, costAmount: 0 };
+const emptyItem = {
+  itemType: "SALE" as string,
+  productId: "",
+  name: "",
+  description: "",
+  quantity: 1,
+  unitPrice: 0,
+  discountType: null as string | null,
+  discountValue: null as number | null,
+  costAmount: 0,
+  rentalPickupDate: "",
+  rentalReturnDate: "",
+};
 
 export function OrderForm({ clients, products, initialData }: OrderFormProps) {
   const router = useRouter();
@@ -69,7 +91,16 @@ export function OrderForm({ clients, products, initialData }: OrderFormProps) {
     initialData?.items.length ? initialData.items : [{ ...emptyItem }]
   );
 
-  const totalPrice = items.reduce((sum, i) => sum + i.quantity * i.unitPrice, 0);
+  const totalPrice = items.reduce((sum, i) => {
+    const lineTotal = i.quantity * i.unitPrice;
+    if (i.discountType === "FIXED" && i.discountValue) {
+      return sum + lineTotal - i.discountValue;
+    }
+    if (i.discountType === "PERCENTAGE" && i.discountValue) {
+      return sum + lineTotal * (1 - i.discountValue / 100);
+    }
+    return sum + lineTotal;
+  }, 0);
   const totalCost = items.reduce((sum, i) => sum + i.quantity * i.costAmount, 0);
 
   function handleItemChange(index: number, field: string, value: unknown) {
@@ -92,8 +123,12 @@ export function OrderForm({ clients, products, initialData }: OrderFormProps) {
       toast.error("Seleccione un cliente");
       return;
     }
-    if (items.some((i) => !i.productId)) {
-      toast.error("Seleccione un producto para cada línea");
+    if (items.some((i) => (i.itemType === "SALE" || i.itemType === "RENTAL") && !i.productId)) {
+      toast.error("Seleccione un producto para cada item de venta o alquiler");
+      return;
+    }
+    if (items.some((i) => !i.name)) {
+      toast.error("Ingrese un nombre para cada item");
       return;
     }
 
@@ -109,11 +144,18 @@ export function OrderForm({ clients, products, initialData }: OrderFormProps) {
       minDownpaymentPct: minPct,
       notes,
       items: items.map((i) => ({
-        productId: i.productId,
+        itemType: i.itemType as "SALE" | "RENTAL" | "SERVICE",
+        productId: i.productId || null,
+        name: i.name,
+        description: i.description || null,
         quantity: i.quantity,
         unitPrice: i.unitPrice,
+        discountType: i.discountType as "FIXED" | "PERCENTAGE" | null,
+        discountValue: i.discountValue,
         costSource: "MANUAL" as const,
         costAmount: i.costAmount,
+        rentalPickupDate: i.rentalPickupDate ? new Date(i.rentalPickupDate) : null,
+        rentalReturnDate: i.rentalReturnDate ? new Date(i.rentalReturnDate) : null,
       })),
     };
 
@@ -184,7 +226,7 @@ export function OrderForm({ clients, products, initialData }: OrderFormProps) {
 
       <Card>
         <CardHeader>
-          <CardTitle>Productos</CardTitle>
+          <CardTitle>Items del Pedido</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           {items.map((item, index) => (
@@ -199,7 +241,7 @@ export function OrderForm({ clients, products, initialData }: OrderFormProps) {
           ))}
           <Button type="button" variant="outline" onClick={addItem} className="w-full">
             <Plus className="mr-2 h-4 w-4" />
-            Agregar Producto
+            Agregar Item
           </Button>
           <Separator />
           <div className="flex justify-end gap-8 text-sm">

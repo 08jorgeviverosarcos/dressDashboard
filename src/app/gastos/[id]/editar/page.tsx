@@ -24,7 +24,7 @@ export default async function EditarGastoPage({ params }: Props) {
           orderNumber: o.orderNumber,
           items: o.items.map((i) => ({
             id: i.id,
-            product: { name: i.product.name, code: i.product.code },
+            product: { name: (i.name || i.product?.name) ?? "", code: i.product?.code ?? "" },
           })),
         }))}
         initialData={{

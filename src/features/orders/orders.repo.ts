@@ -72,15 +72,23 @@ export function create(orderData: OrderData, items: OrderItemFormData[]) {
       status: "QUOTE",
       items: {
         create: items.map((item) => ({
-          productId: item.productId,
+          productId: item.productId || null,
           inventoryItemId: item.inventoryItemId || null,
+          itemType: item.itemType,
+          name: item.name,
+          description: item.description || null,
           quantity: item.quantity,
           unitPrice: item.unitPrice,
+          discountType: item.discountType || null,
+          discountValue: item.discountValue ?? null,
           costSource: item.costSource,
           costAmount: item.costAmount,
           notes: item.notes || null,
         })),
       },
+    },
+    include: {
+      items: true,
     },
   });
 }
@@ -101,9 +109,17 @@ export function updateInTransaction(
   items: OrderItemFormData[]
 ) {
   return prisma.$transaction(async (tx) => {
+    // 1. Buscar items existentes con sus rentals
+    const existingItems = await tx.orderItem.findMany({
+      where: { orderId: id },
+      include: { rental: true },
+    });
+
+    // 2. Borrar todos los items (Rental.orderItemId -> null por onDelete: SetNull)
     await tx.orderItem.deleteMany({ where: { orderId: id } });
 
-    await tx.order.update({
+    // 3. Actualizar la orden y crear los nuevos items
+    const updatedOrder = await tx.order.update({
       where: { id },
       data: {
         clientId: orderData.clientId,
@@ -116,17 +132,60 @@ export function updateInTransaction(
         notes: orderData.notes || null,
         items: {
           create: items.map((item) => ({
-            productId: item.productId,
+            productId: item.productId || null,
             inventoryItemId: item.inventoryItemId || null,
+            itemType: item.itemType,
+            name: item.name,
+            description: item.description || null,
             quantity: item.quantity,
             unitPrice: item.unitPrice,
+            discountType: item.discountType || null,
+            discountValue: item.discountValue ?? null,
             costSource: item.costSource,
             costAmount: item.costAmount,
             notes: item.notes || null,
           })),
         },
       },
+      include: { items: true },
     });
+
+    // 4. Para items tipo RENTAL, re-asociar rentals existentes o crear nuevos
+    const rentalItems = updatedOrder.items.filter((i) => i.itemType === "RENTAL");
+
+    for (const newItem of rentalItems) {
+      const formItem = items.find(
+        (fi) => fi.itemType === "RENTAL" && fi.productId === newItem.productId
+      );
+
+      // Buscar rental huerfano que corresponda (por productId del item original)
+      const matchingOldItem = existingItems.find(
+        (ei) => ei.rental && ei.productId === newItem.productId
+      );
+      const orphanedRental = matchingOldItem?.rental;
+
+      if (orphanedRental) {
+        // Re-asociar el rental existente al nuevo item y actualizar fechas
+        await tx.rental.update({
+          where: { id: orphanedRental.id },
+          data: {
+            orderItemId: newItem.id,
+            ...(formItem?.rentalPickupDate !== undefined && { pickupDate: formItem.rentalPickupDate ?? null }),
+            ...(formItem?.rentalReturnDate !== undefined && { returnDate: formItem.rentalReturnDate ?? null }),
+          },
+        });
+      } else if (formItem) {
+        // Crear nuevo rental
+        await tx.rental.create({
+          data: {
+            orderItemId: newItem.id,
+            pickupDate: formItem.rentalPickupDate ?? null,
+            returnDate: formItem.rentalReturnDate ?? null,
+            chargedIncome: 0,
+          },
+        });
+      }
+    }
   });
 }
 

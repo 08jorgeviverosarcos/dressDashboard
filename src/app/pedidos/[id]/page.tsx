@@ -21,7 +21,7 @@ export default async function PedidoDetailPage({ params }: Props) {
   const { id } = await params;
   const order = await getOrder(id);
   if (!order) return notFound();
-  const hasRental = order.items.some((item) => !!item.rental);
+  const hasRental = order.items.some((item) => item.itemType === "RENTAL");
 
   const totalPrice = toDecimalNumber(order.totalPrice);
   const totalCost = toDecimalNumber(order.totalCost);
@@ -157,34 +157,67 @@ export default async function PedidoDetailPage({ params }: Props) {
       {/* Items Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Productos ({order.items.length})</CardTitle>
+          <CardTitle>Items del Pedido ({order.items.length})</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="rounded-md border">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b bg-muted/50">
-                  <th className="p-3 text-left font-medium">Código</th>
-                  <th className="p-3 text-left font-medium">Producto</th>
+                  <th className="p-3 text-left font-medium">Tipo</th>
+                  <th className="p-3 text-left font-medium">Nombre</th>
                   <th className="p-3 text-center font-medium">Cant.</th>
                   <th className="p-3 text-right font-medium">Precio Unit.</th>
+                  <th className="p-3 text-right font-medium">Descuento</th>
                   <th className="p-3 text-right font-medium">Costo</th>
                   <th className="p-3 text-right font-medium">Subtotal</th>
                 </tr>
               </thead>
               <tbody>
-                {order.items.map((item) => (
-                  <tr key={item.id} className="border-b">
-                    <td className="p-3 font-medium">{item.product.code}</td>
-                    <td className="p-3">{item.product.name}</td>
-                    <td className="p-3 text-center">{item.quantity}</td>
-                    <td className="p-3 text-right">{formatCurrency(item.unitPrice)}</td>
-                    <td className="p-3 text-right">{formatCurrency(item.costAmount)}</td>
-                    <td className="p-3 text-right font-medium">
-                      {formatCurrency(item.quantity * toDecimalNumber(item.unitPrice))}
-                    </td>
-                  </tr>
-                ))}
+                {order.items.map((item) => {
+                  const lineTotal = item.quantity * toDecimalNumber(item.unitPrice);
+                  const discountVal = item.discountValue ? toDecimalNumber(item.discountValue) : 0;
+                  const subtotal =
+                    item.discountType === "FIXED"
+                      ? lineTotal - discountVal
+                      : item.discountType === "PERCENTAGE"
+                        ? lineTotal * (1 - discountVal / 100)
+                        : lineTotal;
+
+                  return (
+                    <tr key={item.id} className="border-b">
+                      <td className="p-3">
+                        <Badge variant="outline">
+                          {item.itemType === "SALE"
+                            ? "Venta"
+                            : item.itemType === "RENTAL"
+                              ? "Alquiler"
+                              : "Servicio"}
+                        </Badge>
+                      </td>
+                      <td className="p-3">
+                        <div>{item.name}</div>
+                        {item.description && (
+                          <div className="text-xs text-muted-foreground">{item.description}</div>
+                        )}
+                        {item.product && (
+                          <div className="text-xs text-muted-foreground">Cod: {item.product.code}</div>
+                        )}
+                      </td>
+                      <td className="p-3 text-center">{item.quantity}</td>
+                      <td className="p-3 text-right">{formatCurrency(item.unitPrice)}</td>
+                      <td className="p-3 text-right">
+                        {item.discountType && item.discountValue ? (
+                          item.discountType === "PERCENTAGE"
+                            ? `${toDecimalNumber(item.discountValue)}%`
+                            : formatCurrency(item.discountValue)
+                        ) : "—"}
+                      </td>
+                      <td className="p-3 text-right">{formatCurrency(item.costAmount)}</td>
+                      <td className="p-3 text-right font-medium">{formatCurrency(subtotal)}</td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -218,7 +251,7 @@ export default async function PedidoDetailPage({ params }: Props) {
                         <td className="p-3">{formatDate(expense.date)}</td>
                         <td className="p-3">{expense.category}</td>
                         <td className="p-3">{expense.description}</td>
-                        <td className="p-3 text-muted-foreground">{item.product.name}</td>
+                        <td className="p-3 text-muted-foreground">{item.name || item.product?.name}</td>
                         <td className="p-3 text-right">{formatCurrency(expense.amount)}</td>
                       </tr>
                     ))

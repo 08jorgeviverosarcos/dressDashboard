@@ -5,6 +5,7 @@ const orderItemInclude = {
   orderItem: {
     select: {
       id: true,
+      name: true,
       product: { select: { name: true, code: true } },
       order: { select: { id: true, orderNumber: true } },
     },

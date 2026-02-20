@@ -91,10 +91,15 @@ model Order {
 model OrderItem {
   id              String         @id @default(cuid())
   orderId         String
-  productId       String
+  productId       String?
   inventoryItemId String?
+  itemType        OrderItemType  @default(SALE)
+  name            String         @default("")
+  description     String?
   quantity        Int            @default(1)
   unitPrice       Decimal        @db.Decimal(12, 2)
+  discountType    DiscountType?
+  discountValue   Decimal?       @db.Decimal(12, 2)
   costSource      CostSource     @default(MANUAL)
   costAmount      Decimal        @default(0) @db.Decimal(12, 2)
   notes           String?
@@ -102,7 +107,7 @@ model OrderItem {
   rental          Rental?
   inventoryItem   InventoryItem? @relation(fields: [inventoryItemId], references: [id])
   order           Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  product         Product        @relation(fields: [productId], references: [id])
+  product         Product?       @relation(fields: [productId], references: [id])
 
   @@index([orderId])
   @@index([productId])
@@ -238,4 +243,15 @@ enum InventoryStatus {
 enum ExpenseType {
   FIXED
   VARIABLE
+}
+
+enum OrderItemType {
+  SALE
+  RENTAL
+  SERVICE
+}
+
+enum DiscountType {
+  FIXED
+  PERCENTAGE
 }
