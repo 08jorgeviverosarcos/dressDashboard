@@ -41,6 +41,8 @@ export default async function EditarPedidoPage({ params }: Props) {
           orderDate: order.orderDate.toISOString().split("T")[0],
           eventDate: order.eventDate ? order.eventDate.toISOString().split("T")[0] : null,
           deliveryDate: order.deliveryDate ? order.deliveryDate.toISOString().split("T")[0] : null,
+          adjustmentAmount: toDecimalNumber(order.adjustmentAmount),
+          adjustmentReason: order.adjustmentReason ?? "",
           minDownpaymentPct: toDecimalNumber(order.minDownpaymentPct),
           notes: order.notes ?? "",
           items: order.items.map((i) => ({
@@ -53,9 +55,6 @@ export default async function EditarPedidoPage({ params }: Props) {
             discountType: i.discountType ?? null,
             discountValue: i.discountValue ? toDecimalNumber(i.discountValue) : null,
             costAmount: toDecimalNumber(i.costAmount),
-            rentalPickupDate: i.rental?.pickupDate
-              ? i.rental.pickupDate.toISOString().split("T")[0]
-              : "",
             rentalReturnDate: i.rental?.returnDate
               ? i.rental.returnDate.toISOString().split("T")[0]
               : "",

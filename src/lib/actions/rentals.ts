@@ -12,9 +12,8 @@ export async function getRental(orderItemId: string) {
 export async function createRental(data: {
   orderItemId: string;
   orderId: string;
-  pickupDate?: Date | null;
   returnDate?: Date | null;
-  chargedIncome?: number;
+  deposit?: number;
 }): Promise<ActionResult<{ id: string }>> {
   const result = await service.createRental(data);
   if (result.success) revalidatePath(`/pedidos/${data.orderId}`);
@@ -24,10 +23,9 @@ export async function createRental(data: {
 export async function updateRental(
   id: string,
   data: {
-    pickupDate?: Date | null;
     returnDate?: Date | null;
     actualReturnDate?: Date | null;
-    chargedIncome?: number;
+    deposit?: number;
   }
 ): Promise<ActionResult> {
   const internal = await service.updateRental(id, data);

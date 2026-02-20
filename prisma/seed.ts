@@ -66,7 +66,7 @@ async function main() {
     data: {
       code: "VG-001",
       name: "Vestido Gala Esmeralda",
-      type: "DRESS",
+      type: "BOTH",
       category: { connect: { id: catGala.id } },
       salePrice: 2500000,
       rentalPrice: 800000,
@@ -79,7 +79,7 @@ async function main() {
     data: {
       code: "VN-001",
       name: "Vestido Novia Clásico",
-      type: "DRESS",
+      type: "BOTH",
       category: { connect: { id: catBride.id } },
       salePrice: 5000000,
       rentalPrice: 1500000,
@@ -92,7 +92,7 @@ async function main() {
     data: {
       code: "VC-001",
       name: "Vestido Coctel Rosa",
-      type: "DRESS",
+      type: "BOTH",
       category: { connect: { id: catCocktail.id } },
       salePrice: 1200000,
       rentalPrice: 400000,
@@ -105,7 +105,7 @@ async function main() {
     data: {
       code: "VQ-001",
       name: "Vestido Quinceañera Princesa",
-      type: "DRESS",
+      type: "BOTH",
       category: { connect: { id: catQuince.id } },
       salePrice: 3500000,
       rentalPrice: 1200000,
@@ -118,7 +118,7 @@ async function main() {
     data: {
       code: "AC-001",
       name: "Tiara Cristal",
-      type: "ACCESSORY",
+      type: "SALE",
       category: { connect: { id: catOther.id } },
       salePrice: 350000,
       cost: 120000,
@@ -130,7 +130,7 @@ async function main() {
     data: {
       code: "SV-001",
       name: "Ajuste y arreglo",
-      type: "SERVICE",
+      type: "SALE",
       salePrice: 200000,
       cost: 80000,
       description: "Servicio de ajuste a medida",
@@ -288,9 +288,8 @@ async function main() {
   await prisma.rental.create({
     data: {
       orderItemId: order2Item!.id,
-      pickupDate: new Date("2025-04-12"),
       returnDate: new Date("2025-04-17"),
-      chargedIncome: 1500000,
+      deposit: 300000,
     },
   });
 

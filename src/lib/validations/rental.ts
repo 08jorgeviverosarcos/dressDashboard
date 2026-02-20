@@ -2,10 +2,9 @@ import { z } from "zod";
 
 export const rentalSchema = z.object({
   orderItemId: z.string().min(1, "El item del pedido es requerido"),
-  pickupDate: z.date().optional().nullable(),
   returnDate: z.date().optional().nullable(),
   actualReturnDate: z.date().optional().nullable(),
-  chargedIncome: z.number().min(0).default(0),
+  deposit: z.number().min(0).default(0),
 });
 
 export const rentalCostSchema = z.object({

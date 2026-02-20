@@ -39,9 +39,8 @@ export function findById(id: string) {
 
 export function create(data: {
   orderItemId?: string | null;
-  pickupDate: Date | null;
   returnDate: Date | null;
-  chargedIncome: number;
+  deposit: number;
 }) {
   return prisma.rental.create({ data });
 }
@@ -49,19 +48,17 @@ export function create(data: {
 export function update(
   id: string,
   data: {
-    pickupDate?: Date | null;
     returnDate?: Date | null;
     actualReturnDate?: Date | null;
-    chargedIncome?: number;
+    deposit?: number;
   }
 ) {
   return prisma.rental.update({
     where: { id },
     data: {
-      ...(data.pickupDate !== undefined && { pickupDate: data.pickupDate }),
       ...(data.returnDate !== undefined && { returnDate: data.returnDate }),
       ...(data.actualReturnDate !== undefined && { actualReturnDate: data.actualReturnDate }),
-      ...(data.chargedIncome !== undefined && { chargedIncome: data.chargedIncome }),
+      ...(data.deposit !== undefined && { deposit: data.deposit }),
     },
   });
 }

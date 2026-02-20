@@ -8,9 +8,8 @@ export function getRental(orderItemId: string) {
 
 export async function createRental(data: {
   orderItemId: string;
-  pickupDate?: Date | null;
   returnDate?: Date | null;
-  chargedIncome?: number;
+  deposit?: number;
 }): Promise<ActionResult<{ id: string }>> {
   const existing = await repo.findByOrderItemIdSimple(data.orderItemId);
   if (existing) {
@@ -19,9 +18,8 @@ export async function createRental(data: {
 
   const rental = await repo.create({
     orderItemId: data.orderItemId,
-    pickupDate: data.pickupDate ?? null,
     returnDate: data.returnDate ?? null,
-    chargedIncome: data.chargedIncome ?? 0,
+    deposit: data.deposit ?? 0,
   });
 
   return { success: true, data: { id: rental.id } };
@@ -34,10 +32,9 @@ type UpdateRentalResult =
 export async function updateRental(
   id: string,
   data: {
-    pickupDate?: Date | null;
     returnDate?: Date | null;
     actualReturnDate?: Date | null;
-    chargedIncome?: number;
+    deposit?: number;
   }
 ): Promise<UpdateRentalResult> {
   const rental = await repo.findById(id);

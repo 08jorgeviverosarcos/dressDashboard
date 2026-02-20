@@ -43,6 +43,8 @@ interface OrderFormProps {
     orderDate: string;
     eventDate: string | null;
     deliveryDate: string | null;
+    adjustmentAmount: number;
+    adjustmentReason: string;
     minDownpaymentPct: number;
     notes: string;
     items: {
@@ -55,7 +57,6 @@ interface OrderFormProps {
       discountType: string | null;
       discountValue: number | null;
       costAmount: number;
-      rentalPickupDate: string;
       rentalReturnDate: string;
     }[];
   };
@@ -71,7 +72,6 @@ const emptyItem = {
   discountType: null as string | null,
   discountValue: null as number | null,
   costAmount: 0,
-  rentalPickupDate: "",
   rentalReturnDate: "",
 };
 
@@ -85,13 +85,15 @@ export function OrderForm({ clients, products, initialData }: OrderFormProps) {
   );
   const [eventDate, setEventDate] = useState(initialData?.eventDate ?? "");
   const [deliveryDate, setDeliveryDate] = useState(initialData?.deliveryDate ?? "");
+  const [adjustmentAmount, setAdjustmentAmount] = useState(initialData?.adjustmentAmount ?? 0);
+  const [adjustmentReason, setAdjustmentReason] = useState(initialData?.adjustmentReason ?? "");
   const [minPct, setMinPct] = useState(initialData?.minDownpaymentPct ?? 30);
   const [notes, setNotes] = useState(initialData?.notes ?? "");
   const [items, setItems] = useState<typeof emptyItem[]>(
     initialData?.items.length ? initialData.items : [{ ...emptyItem }]
   );
 
-  const totalPrice = items.reduce((sum, i) => {
+  const itemsSubtotal = items.reduce((sum, i) => {
     const lineTotal = i.quantity * i.unitPrice;
     if (i.discountType === "FIXED" && i.discountValue) {
       return sum + lineTotal - i.discountValue;
@@ -101,6 +103,7 @@ export function OrderForm({ clients, products, initialData }: OrderFormProps) {
     }
     return sum + lineTotal;
   }, 0);
+  const totalPrice = itemsSubtotal + adjustmentAmount;
   const totalCost = items.reduce((sum, i) => sum + i.quantity * i.costAmount, 0);
 
   function handleItemChange(index: number, field: string, value: unknown) {
@@ -141,6 +144,8 @@ export function OrderForm({ clients, products, initialData }: OrderFormProps) {
       deliveryDate: deliveryDate ? new Date(deliveryDate) : null,
       totalPrice,
       totalCost,
+      adjustmentAmount,
+      adjustmentReason,
       minDownpaymentPct: minPct,
       notes,
       items: items.map((i) => ({
@@ -154,7 +159,6 @@ export function OrderForm({ clients, products, initialData }: OrderFormProps) {
         discountValue: i.discountValue,
         costSource: "MANUAL" as const,
         costAmount: i.costAmount,
-        rentalPickupDate: i.rentalPickupDate ? new Date(i.rentalPickupDate) : null,
         rentalReturnDate: i.rentalReturnDate ? new Date(i.rentalReturnDate) : null,
       })),
     };
@@ -203,7 +207,7 @@ export function OrderForm({ clients, products, initialData }: OrderFormProps) {
               <Input type="date" value={orderDate} onChange={(e) => setOrderDate(e.target.value)} />
             </div>
           </div>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label>Fecha del Evento</Label>
               <Input type="date" value={eventDate} onChange={(e) => setEventDate(e.target.value)} />
@@ -212,6 +216,26 @@ export function OrderForm({ clients, products, initialData }: OrderFormProps) {
               <Label>Fecha de Entrega</Label>
               <Input type="date" value={deliveryDate} onChange={(e) => setDeliveryDate(e.target.value)} />
             </div>
+          </div>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label>Ajuste ($)</Label>
+              <Input
+                type="number"
+                value={adjustmentAmount}
+                onChange={(e) => setAdjustmentAmount(Number(e.target.value))}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Motivo del ajuste</Label>
+              <Input
+                value={adjustmentReason}
+                onChange={(e) => setAdjustmentReason(e.target.value)}
+                placeholder="Ej: multa, domicilio, recargo..."
+              />
+            </div>
+          </div>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-1">
             <div className="space-y-2">
               <Label>% Abono Mínimo</Label>
               <Input type="number" min={0} max={100} value={minPct} onChange={(e) => setMinPct(Number(e.target.value))} />

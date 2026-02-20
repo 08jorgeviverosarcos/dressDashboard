@@ -31,7 +31,6 @@ interface OrderItemRowProps {
     discountType: string | null;
     discountValue: number | null;
     costAmount: number;
-    rentalPickupDate: string;
     rentalReturnDate: string;
   };
   products: ProductOption[];
@@ -53,7 +52,6 @@ export function OrderItemRow({ index, item, products, onChange, onRemove }: Orde
     onChange(index, "description", "");
     onChange(index, "unitPrice", 0);
     onChange(index, "costAmount", 0);
-    onChange(index, "rentalPickupDate", "");
     onChange(index, "rentalReturnDate", "");
   }
 
@@ -229,14 +227,6 @@ export function OrderItemRow({ index, item, products, onChange, onRemove }: Orde
       {/* Fila 3: Fechas de alquiler (solo para RENTAL) */}
       {item.itemType === "RENTAL" && (
         <div className="grid grid-cols-12 gap-2 items-end">
-          <div className="col-span-3">
-            <label className="text-xs font-medium text-muted-foreground mb-1 block">Fecha Recogida</label>
-            <Input
-              type="date"
-              value={item.rentalPickupDate}
-              onChange={(e) => onChange(index, "rentalPickupDate", e.target.value)}
-            />
-          </div>
           <div className="col-span-3">
             <label className="text-xs font-medium text-muted-foreground mb-1 block">Fecha Devolución</label>
             <Input

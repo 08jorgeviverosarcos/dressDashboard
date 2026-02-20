@@ -25,6 +25,7 @@ export default async function PedidoDetailPage({ params }: Props) {
 
   const totalPrice = toDecimalNumber(order.totalPrice);
   const totalCost = toDecimalNumber(order.totalCost);
+  const adjustmentAmount = toDecimalNumber(order.adjustmentAmount);
   const totalPaid = calculatePaidAmount(order.payments);
   const paidPct = calculatePaidPercentage(order.payments, order.totalPrice);
   const remaining = totalPrice - totalPaid;
@@ -131,6 +132,14 @@ export default async function PedidoDetailPage({ params }: Props) {
             <div className="text-muted-foreground">
               Abono mínimo: {toDecimalNumber(order.minDownpaymentPct)}%
             </div>
+            <div className="text-muted-foreground">
+              Ajuste: {formatCurrency(adjustmentAmount)}
+            </div>
+            {adjustmentAmount !== 0 && order.adjustmentReason && (
+              <div className="text-muted-foreground">
+                Motivo ajuste: {order.adjustmentReason}
+              </div>
+            )}
             {order.notes && (
               <div className="flex items-start gap-2 pt-2 border-t">
                 <FileText className="h-4 w-4 text-muted-foreground mt-0.5" />

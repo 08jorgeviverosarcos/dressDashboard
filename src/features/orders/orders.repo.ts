@@ -9,6 +9,8 @@ type OrderData = {
   deliveryDate?: Date | null;
   totalPrice: number;
   totalCost: number;
+  adjustmentAmount: number;
+  adjustmentReason?: string;
   minDownpaymentPct: number;
   notes?: string;
 };
@@ -67,6 +69,8 @@ export function create(orderData: OrderData, items: OrderItemFormData[]) {
       deliveryDate: orderData.deliveryDate ?? null,
       totalPrice: orderData.totalPrice,
       totalCost: orderData.totalCost,
+      adjustmentAmount: orderData.adjustmentAmount,
+      adjustmentReason: orderData.adjustmentReason || null,
       minDownpaymentPct: orderData.minDownpaymentPct,
       notes: orderData.notes || null,
       status: "QUOTE",
@@ -128,6 +132,8 @@ export function updateInTransaction(
         deliveryDate: orderData.deliveryDate ?? null,
         totalPrice: orderData.totalPrice,
         totalCost: orderData.totalCost,
+        adjustmentAmount: orderData.adjustmentAmount,
+        adjustmentReason: orderData.adjustmentReason || null,
         minDownpaymentPct: orderData.minDownpaymentPct,
         notes: orderData.notes || null,
         items: {
@@ -170,7 +176,6 @@ export function updateInTransaction(
           where: { id: orphanedRental.id },
           data: {
             orderItemId: newItem.id,
-            ...(formItem?.rentalPickupDate !== undefined && { pickupDate: formItem.rentalPickupDate ?? null }),
             ...(formItem?.rentalReturnDate !== undefined && { returnDate: formItem.rentalReturnDate ?? null }),
           },
         });
@@ -179,9 +184,8 @@ export function updateInTransaction(
         await tx.rental.create({
           data: {
             orderItemId: newItem.id,
-            pickupDate: formItem.rentalPickupDate ?? null,
             returnDate: formItem.rentalReturnDate ?? null,
-            chargedIncome: 0,
+            deposit: 0,
           },
         });
       }

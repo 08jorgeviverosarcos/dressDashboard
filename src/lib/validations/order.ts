@@ -13,7 +13,6 @@ export const orderItemSchema = z.object({
   costSource: z.enum(["INVENTORY", "EXPENSES", "MANUAL"]).default("MANUAL"),
   costAmount: z.number().min(0).default(0),
   notes: z.string().optional().or(z.literal("")),
-  rentalPickupDate: z.date().optional().nullable(),
   rentalReturnDate: z.date().optional().nullable(),
 }).refine(
   (data) => {
@@ -32,10 +31,15 @@ export const orderSchema = z.object({
   deliveryDate: z.date().optional().nullable(),
   totalPrice: z.number().min(0, "El precio total debe ser positivo"),
   totalCost: z.number().min(0).default(0),
+  adjustmentAmount: z.number().default(0),
+  adjustmentReason: z.string().optional().or(z.literal("")),
   minDownpaymentPct: z.number().min(0).max(100).default(30),
   notes: z.string().optional().or(z.literal("")),
   items: z.array(orderItemSchema).min(1, "Agregue al menos un item"),
-});
+}).refine(
+  (data) => data.adjustmentAmount === 0 || !!data.adjustmentReason?.trim(),
+  { message: "Ingrese el motivo del ajuste", path: ["adjustmentReason"] }
+);
 
 export type OrderFormData = z.infer<typeof orderSchema>;
 export type OrderItemFormData = z.infer<typeof orderItemSchema>;

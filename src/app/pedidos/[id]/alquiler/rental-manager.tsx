@@ -17,8 +17,7 @@ import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { createRental, updateRental, addRentalCost, deleteRentalCost } from "@/lib/actions/rentals";
 import { RENTAL_COST_TYPES } from "@/lib/constants/categories";
 import { formatCurrency, toDecimalNumber } from "@/lib/utils";
-import { calculateRentalProfit } from "@/lib/business/profit";
-import { Plus, Trash2, DollarSign } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 
 interface RentalCost {
   id: string;
@@ -30,10 +29,9 @@ interface RentalCost {
 interface RentalData {
   id: string;
   orderItemId: string | null;
-  pickupDate: string | null;
   returnDate: string | null;
   actualReturnDate: string | null;
-  chargedIncome: number | string;
+  deposit: number | string;
   costs: RentalCost[];
 }
 
@@ -41,10 +39,9 @@ interface RentalManagerProps {
   orderId: string;
   orderItemId: string | null;
   rental: RentalData | null;
-  orderTotal: number;
 }
 
-export function RentalManager({ orderId, orderItemId, rental, orderTotal }: RentalManagerProps) {
+export function RentalManager({ orderId, orderItemId, rental }: RentalManagerProps) {
   const [loading, setLoading] = useState(false);
   const [costDialogOpen, setCostDialogOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
@@ -55,13 +52,11 @@ export function RentalManager({ orderId, orderItemId, rental, orderTotal }: Rent
   const [costDescription, setCostDescription] = useState("");
 
   // Rental dates state
-  const [pickupDate, setPickupDate] = useState(rental?.pickupDate?.split("T")[0] ?? "");
   const [returnDate, setReturnDate] = useState(rental?.returnDate?.split("T")[0] ?? "");
   const [actualReturnDate, setActualReturnDate] = useState(rental?.actualReturnDate?.split("T")[0] ?? "");
-  const [chargedIncome, setChargedIncome] = useState(toDecimalNumber(rental?.chargedIncome));
+  const [deposit, setDeposit] = useState(toDecimalNumber(rental?.deposit));
 
   const totalCosts = rental?.costs.reduce((sum, c) => sum + toDecimalNumber(c.amount), 0) ?? 0;
-  const profit = rental ? calculateRentalProfit(rental.chargedIncome, rental.costs.map(c => ({ amount: c.amount }))) : 0;
 
   async function handleCreateRental() {
     if (!orderItemId) {
@@ -72,9 +67,8 @@ export function RentalManager({ orderId, orderItemId, rental, orderTotal }: Rent
     const result = await createRental({
       orderItemId,
       orderId,
-      pickupDate: pickupDate ? new Date(pickupDate) : null,
       returnDate: returnDate ? new Date(returnDate) : null,
-      chargedIncome: chargedIncome || orderTotal,
+      deposit,
     });
     setLoading(false);
     if (result.success) {
@@ -88,10 +82,9 @@ export function RentalManager({ orderId, orderItemId, rental, orderTotal }: Rent
     if (!rental) return;
     setLoading(true);
     const result = await updateRental(rental.id, {
-      pickupDate: pickupDate ? new Date(pickupDate) : null,
       returnDate: returnDate ? new Date(returnDate) : null,
       actualReturnDate: actualReturnDate ? new Date(actualReturnDate) : null,
-      chargedIncome,
+      deposit,
     });
     setLoading(false);
     if (result.success) {
@@ -143,19 +136,15 @@ export function RentalManager({ orderId, orderItemId, rental, orderTotal }: Rent
             Este pedido no tiene un alquiler asociado.
           </p>
           <div className="max-w-md mx-auto space-y-4 text-left">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Fecha de Recogida</Label>
-                <Input type="date" value={pickupDate} onChange={(e) => setPickupDate(e.target.value)} />
-              </div>
+            <div className="grid grid-cols-1 gap-4">
               <div className="space-y-2">
                 <Label>Fecha de Devolución</Label>
                 <Input type="date" value={returnDate} onChange={(e) => setReturnDate(e.target.value)} />
               </div>
             </div>
             <div className="space-y-2">
-              <Label>Ingreso Cobrado</Label>
-              <Input type="number" value={chargedIncome} onChange={(e) => setChargedIncome(Number(e.target.value))} />
+              <Label>Depósito</Label>
+              <Input type="number" value={deposit} onChange={(e) => setDeposit(Number(e.target.value))} />
             </div>
             <Button onClick={handleCreateRental} disabled={loading} className="w-full">
               {loading ? "Creando..." : "Crear Alquiler"}
@@ -169,28 +158,17 @@ export function RentalManager({ orderId, orderItemId, rental, orderTotal }: Rent
   return (
     <div className="space-y-6">
       {/* Summary Cards */}
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-2">
         <Card>
           <CardContent className="pt-6">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <DollarSign className="h-4 w-4" />
-              Ingreso Cobrado
-            </div>
-            <div className="text-2xl font-bold">{formatCurrency(rental.chargedIncome)}</div>
+            <div className="text-sm text-muted-foreground">Depósito</div>
+            <div className="text-2xl font-bold">{formatCurrency(rental.deposit)}</div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-6">
             <div className="text-sm text-muted-foreground">Total Costos</div>
             <div className="text-2xl font-bold text-orange-600">{formatCurrency(totalCosts)}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-6">
-            <div className="text-sm text-muted-foreground">Ganancia Alquiler</div>
-            <div className={`text-2xl font-bold ${profit >= 0 ? "text-green-600" : "text-red-600"}`}>
-              {formatCurrency(profit)}
-            </div>
           </CardContent>
         </Card>
       </div>
@@ -201,11 +179,7 @@ export function RentalManager({ orderId, orderItemId, rental, orderTotal }: Rent
           <CardTitle>Fechas del Alquiler</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-            <div className="space-y-2">
-              <Label>Fecha de Recogida</Label>
-              <Input type="date" value={pickupDate} onChange={(e) => setPickupDate(e.target.value)} />
-            </div>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label>Fecha de Devolución</Label>
               <Input type="date" value={returnDate} onChange={(e) => setReturnDate(e.target.value)} />
@@ -216,8 +190,8 @@ export function RentalManager({ orderId, orderItemId, rental, orderTotal }: Rent
             </div>
           </div>
           <div className="space-y-2 max-w-xs">
-            <Label>Ingreso Cobrado</Label>
-            <Input type="number" value={chargedIncome} onChange={(e) => setChargedIncome(Number(e.target.value))} />
+            <Label>Depósito</Label>
+            <Input type="number" value={deposit} onChange={(e) => setDeposit(Number(e.target.value))} />
           </div>
           <Button onClick={handleUpdateRental} disabled={loading}>
             {loading ? "Guardando..." : "Actualizar Alquiler"}

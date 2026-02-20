@@ -29,9 +29,8 @@ export async function createOrder(
       if (createdItem) {
         await rentalRepo.create({
           orderItemId: createdItem.id,
-          pickupDate: item.rentalPickupDate ?? null,
           returnDate: item.rentalReturnDate ?? null,
-          chargedIncome: 0,
+          deposit: 0,
         });
       }
     }
