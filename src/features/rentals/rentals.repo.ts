@@ -1,33 +1,44 @@
 import { prisma } from "@/lib/prisma";
 
-export function findByOrderId(orderId: string) {
+export function findByOrderItemId(orderItemId: string) {
   return prisma.rental.findUnique({
-    where: { orderId },
+    where: { orderItemId },
     include: {
       costs: { orderBy: { type: "asc" } },
-      order: {
+      orderItem: {
         include: {
-          client: true,
-          items: { include: { product: true, inventoryItem: true } },
+          product: true,
+          order: {
+            include: {
+              client: true,
+              items: { include: { product: true, inventoryItem: true } },
+            },
+          },
         },
       },
     },
   });
 }
 
-export function findByOrderIdSimple(orderId: string) {
-  return prisma.rental.findUnique({ where: { orderId } });
+export function findByOrderItemIdSimple(orderItemId: string) {
+  return prisma.rental.findUnique({ where: { orderItemId } });
 }
 
 export function findById(id: string) {
   return prisma.rental.findUnique({
     where: { id },
-    include: { order: { include: { items: { include: { inventoryItem: true } } } } },
+    include: {
+      orderItem: {
+        include: {
+          order: { include: { items: { include: { inventoryItem: true } } } },
+        },
+      },
+    },
   });
 }
 
 export function create(data: {
-  orderId: string;
+  orderItemId?: string | null;
   pickupDate: Date | null;
   returnDate: Date | null;
   chargedIncome: number;
@@ -66,7 +77,10 @@ export function updateInventoryItemOnReturn(inventoryItemId: string) {
 }
 
 export function findRentalByIdSimple(rentalId: string) {
-  return prisma.rental.findUnique({ where: { id: rentalId } });
+  return prisma.rental.findUnique({
+    where: { id: rentalId },
+    include: { orderItem: { include: { order: true } } },
+  });
 }
 
 export function createCost(data: {
@@ -81,7 +95,7 @@ export function createCost(data: {
 export function findCostById(id: string) {
   return prisma.rentalCost.findUnique({
     where: { id },
-    include: { rental: true },
+    include: { rental: { include: { orderItem: { include: { order: true } } } } },
   });
 }
 

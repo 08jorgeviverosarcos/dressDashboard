@@ -21,6 +21,7 @@ export default async function PedidoDetailPage({ params }: Props) {
   const { id } = await params;
   const order = await getOrder(id);
   if (!order) return notFound();
+  const hasRental = order.items.some((item) => !!item.rental);
 
   const totalPrice = toDecimalNumber(order.totalPrice);
   const totalCost = toDecimalNumber(order.totalCost);
@@ -39,7 +40,7 @@ export default async function PedidoDetailPage({ params }: Props) {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <StatusBadge status={order.status} />
-          {order.rental && <Badge variant="secondary">Alquiler</Badge>}
+          {hasRental && <Badge variant="secondary">Alquiler</Badge>}
         </div>
         <div className="flex gap-2">
           <Button variant="outline" size="sm" asChild>
@@ -48,7 +49,7 @@ export default async function PedidoDetailPage({ params }: Props) {
               Editar
             </Link>
           </Button>
-          {order.rental && (
+          {hasRental && (
             <Button variant="outline" size="sm" asChild>
               <Link href={`/pedidos/${id}/alquiler`}>
                 Gestionar Alquiler

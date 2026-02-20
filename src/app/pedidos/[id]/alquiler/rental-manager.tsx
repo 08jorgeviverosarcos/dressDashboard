@@ -29,7 +29,7 @@ interface RentalCost {
 
 interface RentalData {
   id: string;
-  orderId: string;
+  orderItemId: string | null;
   pickupDate: string | null;
   returnDate: string | null;
   actualReturnDate: string | null;
@@ -39,11 +39,12 @@ interface RentalData {
 
 interface RentalManagerProps {
   orderId: string;
+  orderItemId: string | null;
   rental: RentalData | null;
   orderTotal: number;
 }
 
-export function RentalManager({ orderId, rental, orderTotal }: RentalManagerProps) {
+export function RentalManager({ orderId, orderItemId, rental, orderTotal }: RentalManagerProps) {
   const [loading, setLoading] = useState(false);
   const [costDialogOpen, setCostDialogOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
@@ -63,8 +64,13 @@ export function RentalManager({ orderId, rental, orderTotal }: RentalManagerProp
   const profit = rental ? calculateRentalProfit(rental.chargedIncome, rental.costs.map(c => ({ amount: c.amount }))) : 0;
 
   async function handleCreateRental() {
+    if (!orderItemId) {
+      toast.error("No hay ítems disponibles para asociar el alquiler");
+      return;
+    }
     setLoading(true);
     const result = await createRental({
+      orderItemId,
       orderId,
       pickupDate: pickupDate ? new Date(pickupDate) : null,
       returnDate: returnDate ? new Date(returnDate) : null,

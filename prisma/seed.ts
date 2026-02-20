@@ -281,17 +281,18 @@ async function main() {
           },
         ],
       },
-      rental: {
-        create: {
-          pickupDate: new Date("2025-04-12"),
-          returnDate: new Date("2025-04-17"),
-          chargedIncome: 1500000,
-        },
-      },
     },
   });
 
   const order2Item = await prisma.orderItem.findFirst({ where: { orderId: order2.id } });
+  await prisma.rental.create({
+    data: {
+      orderItemId: order2Item!.id,
+      pickupDate: new Date("2025-04-12"),
+      returnDate: new Date("2025-04-17"),
+      chargedIncome: 1500000,
+    },
+  });
 
   // Order 3: Quote (quinceañera)
   await prisma.order.create({

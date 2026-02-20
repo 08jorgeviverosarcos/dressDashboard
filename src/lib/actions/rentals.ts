@@ -5,11 +5,12 @@ import { revalidatePath } from "next/cache";
 import type { ActionResult } from "@/types";
 import * as service from "@/features/rentals/rentals.service";
 
-export async function getRental(orderId: string) {
-  return service.getRental(orderId);
+export async function getRental(orderItemId: string) {
+  return service.getRental(orderItemId);
 }
 
 export async function createRental(data: {
+  orderItemId: string;
   orderId: string;
   pickupDate?: Date | null;
   returnDate?: Date | null;

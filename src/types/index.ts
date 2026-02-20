@@ -3,9 +3,8 @@ import type { Prisma } from "@prisma/client";
 export type OrderWithRelations = Prisma.OrderGetPayload<{
   include: {
     client: true;
-    items: { include: { product: true; inventoryItem: true; expenses: true } };
+    items: { include: { product: true; inventoryItem: true; expenses: true; rental: { include: { costs: true } } } };
     payments: true;
-    rental: { include: { costs: true } };
     auditLogs: true;
   };
 }>;
@@ -23,7 +22,7 @@ export type ProductWithInventory = Prisma.ProductGetPayload<{
 }>;
 
 export type RentalWithCosts = Prisma.RentalGetPayload<{
-  include: { costs: true; order: { include: { client: true } } };
+  include: { costs: true; orderItem: { include: { order: { include: { client: true } } } } };
 }>;
 
 export type ClientWithOrders = Prisma.ClientGetPayload<{

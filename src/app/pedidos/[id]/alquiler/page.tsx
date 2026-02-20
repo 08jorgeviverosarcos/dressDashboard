@@ -11,9 +11,11 @@ interface Props {
 
 export default async function AlquilerPage({ params }: Props) {
   const { id } = await params;
-  const [order, rental] = await Promise.all([getOrder(id), getRental(id)]);
+  const order = await getOrder(id);
 
   if (!order) return notFound();
+  const selectedOrderItemId = order.items.find((item) => !!item.rental)?.id ?? order.items[0]?.id ?? null;
+  const rental = selectedOrderItemId ? await getRental(selectedOrderItemId) : null;
 
   return (
     <div className="space-y-6">
@@ -24,6 +26,7 @@ export default async function AlquilerPage({ params }: Props) {
       />
       <RentalManager
         orderId={id}
+        orderItemId={selectedOrderItemId}
         rental={rental ? JSON.parse(JSON.stringify(rental)) : null}
         orderTotal={toDecimalNumber(order.totalPrice)}
       />

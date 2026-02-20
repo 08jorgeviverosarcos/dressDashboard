@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const rentalSchema = z.object({
-  orderId: z.string().min(1, "El pedido es requerido"),
+  orderItemId: z.string().min(1, "El item del pedido es requerido"),
   pickupDate: z.date().optional().nullable(),
   returnDate: z.date().optional().nullable(),
   actualReturnDate: z.date().optional().nullable(),
