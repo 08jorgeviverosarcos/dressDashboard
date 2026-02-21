@@ -22,12 +22,3 @@ export function calculatePaidPercentage(
   if (total === 0) return 0;
   return (paid / total) * 100;
 }
-
-export function calculateRentalProfit(
-  chargedIncome: unknown,
-  costs: { amount: unknown }[]
-): number {
-  const income = toDecimalNumber(chargedIncome);
-  const totalCosts = costs.reduce((sum, c) => sum + toDecimalNumber(c.amount), 0);
-  return income - totalCosts;
-}
