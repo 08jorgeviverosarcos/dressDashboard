@@ -3,6 +3,7 @@ import type { OrderStatus } from "@prisma/client";
 import type { OrderItemFormData } from "@/lib/validations/order";
 
 type OrderData = {
+  orderNumber: number;
   clientId: string;
   orderDate: Date;
   eventDate?: Date | null;
@@ -33,7 +34,7 @@ export function findAll(filters?: { search?: string; status?: OrderStatus }) {
       payments: true,
       items: { include: { product: true } },
     },
-    orderBy: { orderDate: "desc" },
+    orderBy: { createdAt: "desc" },
   });
 }
 
@@ -63,6 +64,7 @@ export function findByIdSimple(id: string) {
 export function create(orderData: OrderData, items: OrderItemFormData[]) {
   return prisma.order.create({
     data: {
+      orderNumber: orderData.orderNumber,
       clientId: orderData.clientId,
       orderDate: orderData.orderDate,
       eventDate: orderData.eventDate ?? null,

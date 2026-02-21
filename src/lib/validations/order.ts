@@ -25,6 +25,7 @@ export const orderItemSchema = z.object({
 );
 
 export const orderSchema = z.object({
+  orderNumber: z.number().int().min(1, "El número de pedido es requerido"),
   clientId: z.string().min(1, "Seleccione un cliente"),
   orderDate: z.date(),
   eventDate: z.date().optional().nullable(),

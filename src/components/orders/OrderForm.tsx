@@ -39,6 +39,7 @@ interface OrderFormProps {
   products: ProductOption[];
   initialData?: {
     id: string;
+    orderNumber: number;
     clientId: string;
     orderDate: string;
     eventDate: string | null;
@@ -79,6 +80,7 @@ export function OrderForm({ clients, products, initialData }: OrderFormProps) {
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
 
+  const [orderNumber, setOrderNumber] = useState<number | "">(initialData?.orderNumber ?? "");
   const [clientId, setClientId] = useState(initialData?.clientId ?? "");
   const [orderDate, setOrderDate] = useState(
     initialData?.orderDate ?? new Date().toISOString().split("T")[0]
@@ -122,6 +124,10 @@ export function OrderForm({ clients, products, initialData }: OrderFormProps) {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
+    if (!orderNumber) {
+      toast.error("Ingrese el número de pedido");
+      return;
+    }
     if (!clientId) {
       toast.error("Seleccione un cliente");
       return;
@@ -138,6 +144,7 @@ export function OrderForm({ clients, products, initialData }: OrderFormProps) {
     setSubmitting(true);
 
     const data: OrderFormData = {
+      orderNumber: Number(orderNumber),
       clientId,
       orderDate: new Date(orderDate),
       eventDate: eventDate ? new Date(eventDate) : null,
@@ -188,7 +195,19 @@ export function OrderForm({ clients, products, initialData }: OrderFormProps) {
           <CardTitle>Información del pedido</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <div className="space-y-2">
+              <Label># Pedido *</Label>
+              <Input
+                type="number"
+                min={1}
+                value={orderNumber}
+                onChange={(e) => setOrderNumber(e.target.value ? Number(e.target.value) : "")}
+                placeholder="Ej: 471"
+                disabled={!!initialData}
+                required
+              />
+            </div>
             <div className="space-y-2">
               <Label>Cliente *</Label>
               <Select value={clientId} onValueChange={setClientId}>

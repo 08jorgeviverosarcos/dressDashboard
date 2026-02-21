@@ -37,6 +37,7 @@ export default async function EditarPedidoPage({ params }: Props) {
         }))}
         initialData={{
           id: order.id,
+          orderNumber: order.orderNumber,
           clientId: order.clientId,
           orderDate: order.orderDate.toISOString().split("T")[0],
           eventDate: order.eventDate ? order.eventDate.toISOString().split("T")[0] : null,
