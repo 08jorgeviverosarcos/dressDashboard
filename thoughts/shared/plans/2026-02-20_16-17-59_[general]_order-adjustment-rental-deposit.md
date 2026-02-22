@@ -362,9 +362,9 @@ Verificación final end-to-end y revisión de regresiones.
 ### Success Criteria
 
 #### Automated Verification:
-- [ ] `npx prisma generate`
+- [x] `npx prisma generate`
 - [ ] `npm run typecheck`
-- [ ] `npm run lint`
+- [x] `npm run lint`
 - [ ] `npm run build`
 
 #### Manual Verification:

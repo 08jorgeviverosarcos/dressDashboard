@@ -41,7 +41,6 @@ export const EXPENSE_CATEGORIES: Record<string, string[]> = {
   "Personal": [
     "Salarios",
     "Bonificaciones",
-    "Seguridad social",
     "Capacitación",
   ],
   "Otros": [
