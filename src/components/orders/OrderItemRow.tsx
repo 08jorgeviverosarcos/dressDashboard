@@ -1,6 +1,7 @@
 "use client";
 
 import { Input } from "@/components/ui/input";
+import { MoneyInput } from "@/components/shared/MoneyInput";
 import { Button } from "@/components/ui/button";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -139,19 +140,17 @@ export function OrderItemRow({ index, item, products, onChange, onRemove }: Orde
 
         <div className="col-span-2">
           {index === 0 && <label className="text-xs font-medium text-muted-foreground mb-1 block">Precio Unit.</label>}
-          <Input
-            type="number"
+          <MoneyInput
             value={item.unitPrice}
-            onChange={(e) => onChange(index, "unitPrice", Number(e.target.value))}
+            onValueChange={(value) => onChange(index, "unitPrice", value ?? 0)}
           />
         </div>
 
         <div className="col-span-2">
           {index === 0 && <label className="text-xs font-medium text-muted-foreground mb-1 block">Costo</label>}
-          <Input
-            type="number"
+          <MoneyInput
             value={item.costAmount}
-            onChange={(e) => onChange(index, "costAmount", Number(e.target.value))}
+            onValueChange={(value) => onChange(index, "costAmount", value ?? 0)}
           />
         </div>
 
@@ -213,14 +212,23 @@ export function OrderItemRow({ index, item, products, onChange, onRemove }: Orde
           <label className="text-xs font-medium text-muted-foreground mb-1 block">
             {item.discountType === "PERCENTAGE" ? "Descuento (%)" : "Descuento ($)"}
           </label>
-          <Input
-            type="number"
-            min={0}
-            value={item.discountValue ?? 0}
-            disabled={!item.discountType}
-            onChange={(e) => onChange(index, "discountValue", Number(e.target.value))}
-            placeholder="0"
-          />
+          {item.discountType === "PERCENTAGE" ? (
+            <Input
+              type="number"
+              min={0}
+              value={item.discountValue ?? 0}
+              disabled={!item.discountType}
+              onChange={(e) => onChange(index, "discountValue", Number(e.target.value))}
+              placeholder="0"
+            />
+          ) : (
+            <MoneyInput
+              value={item.discountValue ?? 0}
+              disabled={!item.discountType}
+              onValueChange={(value) => onChange(index, "discountValue", value ?? 0)}
+              placeholder="$0"
+            />
+          )}
         </div>
       </div>
 

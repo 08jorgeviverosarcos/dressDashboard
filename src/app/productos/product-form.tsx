@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { MoneyInput } from "@/components/shared/MoneyInput";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Form,
@@ -168,11 +169,10 @@ export function ProductForm({ categories, productId, initialData }: ProductFormP
                   <FormItem>
                     <FormLabel>Precio Venta</FormLabel>
                     <FormControl>
-                      <Input
-                        type="number"
-                        placeholder="0"
-                        value={field.value ?? ""}
-                        onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : null)}
+                      <MoneyInput
+                        value={field.value}
+                        placeholder="$0"
+                        onValueChange={(value) => field.onChange(value)}
                       />
                     </FormControl>
                     <FormMessage />
@@ -186,11 +186,10 @@ export function ProductForm({ categories, productId, initialData }: ProductFormP
                   <FormItem>
                     <FormLabel>Precio Alquiler</FormLabel>
                     <FormControl>
-                      <Input
-                        type="number"
-                        placeholder="0"
-                        value={field.value ?? ""}
-                        onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : null)}
+                      <MoneyInput
+                        value={field.value}
+                        placeholder="$0"
+                        onValueChange={(value) => field.onChange(value)}
                       />
                     </FormControl>
                     <FormMessage />
@@ -204,11 +203,10 @@ export function ProductForm({ categories, productId, initialData }: ProductFormP
                   <FormItem>
                     <FormLabel>Costo</FormLabel>
                     <FormControl>
-                      <Input
-                        type="number"
-                        placeholder="0"
-                        value={field.value ?? ""}
-                        onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : null)}
+                      <MoneyInput
+                        value={field.value}
+                        placeholder="$0"
+                        onValueChange={(value) => field.onChange(value)}
                       />
                     </FormControl>
                     <FormMessage />

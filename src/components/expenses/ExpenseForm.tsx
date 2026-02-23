@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { MoneyInput } from "@/components/shared/MoneyInput";
 import {
   Form, FormControl, FormField, FormItem, FormLabel, FormMessage,
 } from "@/components/ui/form";
@@ -128,7 +129,11 @@ export function ExpenseForm({ orders, initialData }: ExpenseFormProps) {
                 <FormItem>
                   <FormLabel>Valor *</FormLabel>
                   <FormControl>
-                    <Input type="number" placeholder="0" {...field} onChange={(e) => field.onChange(Number(e.target.value))} />
+                    <MoneyInput
+                      value={field.value}
+                      placeholder="$0"
+                      onValueChange={(value) => field.onChange(value ?? 0)}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

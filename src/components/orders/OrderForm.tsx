@@ -12,6 +12,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
+import { MoneyInput } from "@/components/shared/MoneyInput";
 import { OrderItemRow } from "./OrderItemRow";
 import { formatCurrency } from "@/lib/utils";
 import { createOrder, updateOrder } from "@/lib/actions/orders";
@@ -239,11 +240,7 @@ export function OrderForm({ clients, products, initialData }: OrderFormProps) {
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label>Ajuste ($)</Label>
-              <Input
-                type="number"
-                value={adjustmentAmount}
-                onChange={(e) => setAdjustmentAmount(Number(e.target.value))}
-              />
+              <MoneyInput value={adjustmentAmount} onValueChange={(value) => setAdjustmentAmount(value ?? 0)} />
             </div>
             <div className="space-y-2">
               <Label>Motivo del ajuste</Label>

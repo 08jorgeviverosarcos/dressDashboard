@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { MoneyInput } from "@/components/shared/MoneyInput";
 import { Label } from "@/components/ui/label";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -144,7 +145,7 @@ export function RentalManager({ orderId, orderItemId, rental }: RentalManagerPro
             </div>
             <div className="space-y-2">
               <Label>Depósito</Label>
-              <Input type="number" value={deposit} onChange={(e) => setDeposit(Number(e.target.value))} />
+              <MoneyInput value={deposit} onValueChange={(value) => setDeposit(value ?? 0)} />
             </div>
             <Button onClick={handleCreateRental} disabled={loading} className="w-full">
               {loading ? "Creando..." : "Crear Alquiler"}
@@ -191,7 +192,7 @@ export function RentalManager({ orderId, orderItemId, rental }: RentalManagerPro
           </div>
           <div className="space-y-2 max-w-xs">
             <Label>Depósito</Label>
-            <Input type="number" value={deposit} onChange={(e) => setDeposit(Number(e.target.value))} />
+            <MoneyInput value={deposit} onValueChange={(value) => setDeposit(value ?? 0)} />
           </div>
           <Button onClick={handleUpdateRental} disabled={loading}>
             {loading ? "Guardando..." : "Actualizar Alquiler"}
@@ -260,7 +261,7 @@ export function RentalManager({ orderId, orderItemId, rental }: RentalManagerPro
             </div>
             <div className="space-y-2">
               <Label>Monto *</Label>
-              <Input type="number" value={costAmount} onChange={(e) => setCostAmount(Number(e.target.value))} />
+              <MoneyInput value={costAmount} onValueChange={(value) => setCostAmount(value ?? 0)} />
             </div>
             <div className="space-y-2">
               <Label>Descripción</Label>

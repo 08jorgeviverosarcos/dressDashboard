@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { MoneyInput } from "@/components/shared/MoneyInput";
 import { Label } from "@/components/ui/label";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -211,21 +212,11 @@ export function OrderItemEditForm({
             </div>
             <div className="space-y-2">
               <Label>Precio unitario</Label>
-              <Input
-                type="number"
-                min={0}
-                value={unitPrice}
-                onChange={(e) => setUnitPrice(Number(e.target.value))}
-              />
+              <MoneyInput value={unitPrice} onValueChange={(value) => setUnitPrice(value ?? 0)} />
             </div>
             <div className="space-y-2">
               <Label>Costo</Label>
-              <Input
-                type="number"
-                min={0}
-                value={costAmount}
-                onChange={(e) => setCostAmount(Number(e.target.value))}
-              />
+              <MoneyInput value={costAmount} onValueChange={(value) => setCostAmount(value ?? 0)} />
             </div>
           </div>
 
@@ -258,13 +249,21 @@ export function OrderItemEditForm({
               <Label>
                 {discountType === "PERCENTAGE" ? "Descuento (%)" : "Descuento ($)"}
               </Label>
-              <Input
-                type="number"
-                min={0}
-                value={discountValue ?? 0}
-                disabled={!discountType}
-                onChange={(e) => setDiscountValue(Number(e.target.value))}
-              />
+              {discountType === "PERCENTAGE" ? (
+                <Input
+                  type="number"
+                  min={0}
+                  value={discountValue ?? 0}
+                  disabled={!discountType}
+                  onChange={(e) => setDiscountValue(Number(e.target.value))}
+                />
+              ) : (
+                <MoneyInput
+                  value={discountValue ?? 0}
+                  disabled={!discountType}
+                  onValueChange={(value) => setDiscountValue(value ?? 0)}
+                />
+              )}
             </div>
           </div>
 

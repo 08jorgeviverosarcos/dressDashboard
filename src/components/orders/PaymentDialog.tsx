@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { MoneyInput } from "@/components/shared/MoneyInput";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -55,6 +56,7 @@ export function PaymentDialog({
       notes: "",
     },
   });
+  const amountValue = form.watch("amount");
 
   async function onSubmit(data: PaymentFormData) {
     setLoading(true);
@@ -104,10 +106,12 @@ export function PaymentDialog({
             </div>
             <div className="space-y-2">
               <Label>Monto</Label>
-              <Input
-                type="number"
-                placeholder="0"
-                {...form.register("amount", { valueAsNumber: true })}
+              <MoneyInput
+                value={amountValue}
+                placeholder="$0"
+                onValueChange={(value) => {
+                  form.setValue("amount", value ?? 0, { shouldDirty: true, shouldValidate: true });
+                }}
               />
               {form.formState.errors.amount && (
                 <p className="text-sm text-destructive">{form.formState.errors.amount.message}</p>
