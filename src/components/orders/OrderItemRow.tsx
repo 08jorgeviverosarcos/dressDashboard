@@ -106,8 +106,8 @@ export function OrderItemRow({ index, item, products, onChange, onRemove }: Orde
       </div>
 
       {/* Fila 1: Tipo + Producto/Nombre + Cantidad + Precio + Costo + Subtotal */}
-      <div className="grid grid-cols-12 gap-2 items-end">
-        <div className="col-span-2">
+      <div className="grid grid-cols-1 gap-2 items-end sm:grid-cols-2 md:grid-cols-12">
+        <div className="sm:col-span-1 md:col-span-2">
           <label className="text-xs font-medium text-muted-foreground mb-1 block">Tipo</label>
           <Select value={item.itemType} onValueChange={handleTypeChange}>
             <SelectTrigger>
@@ -121,7 +121,7 @@ export function OrderItemRow({ index, item, products, onChange, onRemove }: Orde
           </Select>
         </div>
 
-        <div className="col-span-4">
+        <div className="sm:col-span-1 md:col-span-4">
           <label className="text-xs font-medium text-muted-foreground mb-1 block">
             {item.itemType === "SERVICE" ? "Nombre" : "Producto"}
           </label>
@@ -147,7 +147,7 @@ export function OrderItemRow({ index, item, products, onChange, onRemove }: Orde
           )}
         </div>
 
-        <div className="col-span-1">
+        <div className="sm:col-span-1 md:col-span-1">
           <label className="text-xs font-medium text-muted-foreground mb-1 block">Cant.</label>
           <Input
             type="number"
@@ -157,7 +157,7 @@ export function OrderItemRow({ index, item, products, onChange, onRemove }: Orde
           />
         </div>
 
-        <div className="col-span-2">
+        <div className="sm:col-span-1 md:col-span-2">
           <label className="text-xs font-medium text-muted-foreground mb-1 block">Precio Unit.</label>
           <MoneyInput
             value={item.unitPrice}
@@ -165,7 +165,7 @@ export function OrderItemRow({ index, item, products, onChange, onRemove }: Orde
           />
         </div>
 
-        <div className="col-span-2">
+        <div className="sm:col-span-1 md:col-span-2">
           <label className="text-xs font-medium text-muted-foreground mb-1 block">Costo</label>
           <MoneyInput
             value={item.costAmount}
@@ -173,15 +173,15 @@ export function OrderItemRow({ index, item, products, onChange, onRemove }: Orde
           />
         </div>
 
-        <div className="col-span-1 text-right">
+        <div className="sm:col-span-1 md:col-span-1 text-right">
           <label className="text-xs font-medium text-muted-foreground mb-1 block">Subtotal</label>
           <p className="text-sm font-semibold py-2 whitespace-nowrap">{formatCurrency(subtotal)}</p>
         </div>
       </div>
 
       {/* Fila 2: Descripcion + Descuento */}
-      <div className="grid grid-cols-12 gap-2 items-end">
-        <div className="col-span-6">
+      <div className="grid grid-cols-1 gap-2 items-end sm:grid-cols-2 md:grid-cols-12">
+        <div className="sm:col-span-2 md:col-span-6">
           <label className="text-xs font-medium text-muted-foreground mb-1 block">Descripción</label>
           {item.itemType === "SERVICE" ? (
             <Input
@@ -196,7 +196,7 @@ export function OrderItemRow({ index, item, products, onChange, onRemove }: Orde
           )}
         </div>
 
-        <div className="col-span-3">
+        <div className="sm:col-span-1 md:col-span-3">
           <label className="text-xs font-medium text-muted-foreground mb-1 block">Tipo descuento</label>
           <Select
             value={item.discountType ?? "none"}
@@ -220,7 +220,7 @@ export function OrderItemRow({ index, item, products, onChange, onRemove }: Orde
           </Select>
         </div>
 
-        <div className="col-span-3">
+        <div className="sm:col-span-1 md:col-span-3">
           <label className="text-xs font-medium text-muted-foreground mb-1 block">
             {item.discountType === "PERCENTAGE" ? "Descuento (%)" : "Descuento ($)"}
           </label>
@@ -246,8 +246,8 @@ export function OrderItemRow({ index, item, products, onChange, onRemove }: Orde
 
       {/* Fila 3: Fechas de alquiler (solo para RENTAL) */}
       {item.itemType === "RENTAL" && (
-        <div className="grid grid-cols-12 gap-2 items-end">
-          <div className="col-span-3">
+        <div className="grid grid-cols-1 gap-2 items-end sm:grid-cols-2 md:grid-cols-12">
+          <div className="sm:col-span-1 md:col-span-3">
             <label className="text-xs font-medium text-muted-foreground mb-1 block">Fecha Devolución</label>
             <Input
               type="date"
@@ -255,7 +255,7 @@ export function OrderItemRow({ index, item, products, onChange, onRemove }: Orde
               onChange={(e) => onChange(index, "rentalReturnDate", e.target.value)}
             />
           </div>
-          <div className="col-span-3">
+          <div className="sm:col-span-1 md:col-span-3">
             <label className="text-xs font-medium text-muted-foreground mb-1 block">Depósito</label>
             <MoneyInput
               value={item.rentalDeposit}

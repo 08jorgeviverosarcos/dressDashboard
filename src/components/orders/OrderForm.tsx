@@ -287,7 +287,7 @@ export function OrderForm({ clients, products, initialData }: OrderFormProps) {
             Agregar Item
           </Button>
           <Separator />
-          <div className="flex justify-end gap-8 rounded-md border bg-muted/20 px-4 py-3 text-sm">
+          <div className="flex flex-wrap justify-end gap-8 rounded-md border bg-muted/20 px-4 py-3 text-sm">
             <div>
               <span className="text-muted-foreground">Total Precio: </span>
               <span className="font-bold text-lg">{formatCurrency(totalPrice)}</span>
@@ -300,7 +300,7 @@ export function OrderForm({ clients, products, initialData }: OrderFormProps) {
         </CardContent>
       </Card>
 
-      <div className="flex justify-end gap-3">
+      <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
         <Button type="button" variant="outline" onClick={() => router.back()}>
           Cancelar
         </Button>

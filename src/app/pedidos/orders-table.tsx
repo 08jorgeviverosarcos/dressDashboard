@@ -67,12 +67,13 @@ export function OrdersTable({ orders, currentStatus }: OrdersTableProps) {
   const columns: Column<OrderRow>[] = [
     { key: "number", header: "#", cell: (row) => <span className="font-medium">#{row.orderNumber}</span> },
     { key: "client", header: "Cliente", cell: (row) => row.client.name },
-    { key: "date", header: "Fecha", cell: (row) => formatDate(row.orderDate) },
-    { key: "event", header: "Evento", cell: (row) => row.eventDate ? formatDate(row.eventDate) : "—" },
+    { key: "date", header: "Fecha", className: "hidden md:table-cell", cell: (row) => formatDate(row.orderDate) },
+    { key: "event", header: "Evento", className: "hidden md:table-cell", cell: (row) => row.eventDate ? formatDate(row.eventDate) : "—" },
     { key: "total", header: "Total", cell: (row) => formatCurrency(row.totalPrice), className: "text-right" },
     {
       key: "paid",
       header: "% Pagado",
+      className: "hidden md:table-cell",
       cell: (row) => {
         const pct = calculatePaidPercentage(row.payments, row.totalPrice);
         return (

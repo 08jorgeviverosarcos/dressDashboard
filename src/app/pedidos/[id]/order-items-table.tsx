@@ -82,19 +82,19 @@ export function OrderItemsTable({ items, orderId }: OrderItemsTableProps) {
     {
       key: "cantidad",
       header: "Cant.",
-      className: "text-center",
+      className: "text-center hidden md:table-cell",
       cell: (row) => row.quantity,
     },
     {
       key: "precioUnit",
       header: "Precio Unit.",
-      className: "text-right",
+      className: "text-right hidden md:table-cell",
       cell: (row) => formatCurrency(row.unitPrice),
     },
     {
       key: "descuento",
       header: "Descuento",
-      className: "text-right",
+      className: "text-right hidden md:table-cell",
       cell: (row) =>
         row.discountType && row.discountValue
           ? row.discountType === "PERCENTAGE"
@@ -105,13 +105,13 @@ export function OrderItemsTable({ items, orderId }: OrderItemsTableProps) {
     {
       key: "costo",
       header: "Costo",
-      className: "text-right",
+      className: "text-right hidden md:table-cell",
       cell: (row) => formatCurrency(row.costAmount),
     },
     {
       key: "deposito",
       header: "Depósito",
-      className: "text-right",
+      className: "text-right hidden md:table-cell",
       cell: (row) =>
         row.itemType === "RENTAL" && row.rental
           ? formatCurrency(row.rental.deposit)

@@ -101,7 +101,7 @@ export default async function ProductoDetailPage({ params }: Props) {
           {product.orderItems.length === 0 ? (
             <p className="text-sm text-muted-foreground">Sin pedidos registrados</p>
           ) : (
-            <div className="rounded-md border">
+            <div className="overflow-x-auto rounded-md border">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b bg-muted/50">

@@ -129,7 +129,7 @@ export default function NuevoClientePage() {
                 )}
               />
 
-              <div className="flex justify-end gap-3 pt-4">
+              <div className="flex flex-col gap-3 sm:flex-row sm:justify-end pt-4">
                 <Button
                   type="button"
                   variant="outline"

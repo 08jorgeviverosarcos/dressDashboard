@@ -57,9 +57,9 @@ export function GastosTable({ expenses }: GastosTableProps) {
   const columns: Column<ExpenseRow>[] = [
     { key: "date", header: "Fecha", cell: (row) => formatDate(row.date) },
     { key: "category", header: "Categoría", cell: (row) => row.category },
-    { key: "subcategory", header: "Subcategoría", cell: (row) => row.subcategory ?? "—" },
-    { key: "description", header: "Descripción", cell: (row) => row.description },
-    { key: "responsible", header: "Encargado", cell: (row) => row.responsible ?? "—" },
+    { key: "subcategory", header: "Subcategoría", cell: (row) => row.subcategory ?? "—", className: "hidden md:table-cell" },
+    { key: "description", header: "Descripción", cell: (row) => row.description, className: "hidden md:table-cell" },
+    { key: "responsible", header: "Encargado", cell: (row) => row.responsible ?? "—", className: "hidden md:table-cell" },
     {
       key: "amount",
       header: "Valor",
@@ -75,10 +75,12 @@ export function GastosTable({ expenses }: GastosTableProps) {
       key: "method",
       header: "Método",
       cell: (row) => <Badge variant="outline">{PAYMENT_METHOD_LABELS[row.paymentMethod] ?? row.paymentMethod}</Badge>,
+      className: "hidden md:table-cell",
     },
     {
       key: "order",
       header: "Pedido / Item",
+      className: "hidden md:table-cell",
       cell: (row) =>
         row.orderItem ? (
           <Link href={`/pedidos/${row.orderItem.order.id}`} className="text-primary hover:underline" onClick={(e) => e.stopPropagation()}>

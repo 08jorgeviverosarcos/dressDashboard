@@ -93,6 +93,7 @@ export function PaymentsTable({ payments, currentMethod }: PaymentsTableProps) {
     {
       key: "type",
       header: "Tipo",
+      className: "hidden md:table-cell",
       cell: (row) => (
         <Badge variant="secondary">{PAYMENT_TYPE_LABELS[row.paymentType] ?? row.paymentType}</Badge>
       ),
@@ -100,11 +101,12 @@ export function PaymentsTable({ payments, currentMethod }: PaymentsTableProps) {
     {
       key: "method",
       header: "Método",
+      className: "hidden md:table-cell",
       cell: (row) => (
         <Badge variant="outline">{PAYMENT_METHOD_LABELS[row.paymentMethod] ?? row.paymentMethod}</Badge>
       ),
     },
-    { key: "ref", header: "Referencia", cell: (row) => row.reference ?? "—" },
+    { key: "ref", header: "Referencia", className: "hidden md:table-cell", cell: (row) => row.reference ?? "—" },
     {
       key: "actions",
       header: "",

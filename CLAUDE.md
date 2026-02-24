@@ -306,3 +306,179 @@ DB-level cascade (`onDelete: Cascade`, `onDelete: SetNull`) does **not** fire fo
 1. Soft-delete children before the parent
 2. Use `updateMany`/`update` directly with `data: { deletedAt: new Date() }` (not `deleteMany`/`delete`) to avoid double middleware interception
 3. For `onDelete: SetNull` relations (e.g., `Rental.orderItemId`), explicitly null out the FK before soft-deleting the parent item
+
+---
+
+## 17. Responsive Design (MANDATORY — Mobile-First)
+
+The dashboard is used from **both desktop and mobile devices**. Every new component and every modification to existing components **must be fully responsive**.
+
+### Core Principle
+
+This project uses **Tailwind CSS v4** with default breakpoints. No custom breakpoints, no `@media` queries, no JS media query hooks. All responsive behavior is via Tailwind responsive prefixes only.
+
+**Active breakpoints:**
+- `sm:` = 640px — form field columns
+- `md:` = 768px — page-level layout (sidebar, card grids)
+
+`lg:`, `xl:`, `2xl:` are available if needed for future large-screen layouts.
+
+---
+
+### Rules by Component Type
+
+#### Layout & Sidebar
+The sidebar uses a complete hamburger-menu pattern (already implemented). **Do NOT break this pattern** when adding new nav items or modifying the layout.
+
+- Mobile: hidden sidebar, hamburger button at `fixed left-4 top-4 z-50 md:hidden`, overlay `bg-black/50`
+- Desktop: `hidden md:flex md:fixed md:w-64` sidebar, main content with `md:ml-64`
+- New nav items must include `onClick={() => setMobileOpen(false)}` to close mobile drawer on navigation
+
+#### Grids & Cards
+All multi-column card grids must stack on mobile:
+
+```tsx
+// Page-level grids (sidebar-aware, use md:)
+<div className="grid gap-4 md:grid-cols-N">
+
+// Form field grids (use sm:)
+<div className="grid grid-cols-1 gap-4 sm:grid-cols-N">
+```
+
+❌ Do NOT use bare `grid-cols-N` without a `grid-cols-1` base for mobile
+❌ Do NOT use `md:` for form field grids (640px is the correct form breakpoint)
+❌ Do NOT use `lg:` or `xl:` unless the layout genuinely needs large-screen adaptation
+
+#### Forms
+All multi-column form rows must follow this pattern:
+
+```tsx
+<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+  <FormField ... />
+  <FormField ... />
+</div>
+```
+
+**Button rows** in forms must stack on mobile:
+
+```tsx
+// Correct — buttons stack on mobile
+<div className="flex flex-col gap-3 sm:flex-row sm:justify-end pt-4">
+  <Button variant="outline">Cancelar</Button>
+  <Button type="submit">Guardar</Button>
+</div>
+
+// For pages with delete + save (justify-between):
+<div className="flex flex-col gap-3 sm:flex-row sm:justify-between pt-4">
+  <Button variant="destructive">Eliminar</Button>
+  <div className="flex gap-3">
+    <Button variant="outline">Cancelar</Button>
+    <Button type="submit">Guardar</Button>
+  </div>
+</div>
+```
+
+❌ Do NOT use bare `flex justify-end gap-3` for button rows — buttons will NOT stack on mobile
+
+#### Complex Item Rows (e.g., OrderItemRow)
+Rows with many inline fields (like `OrderItemRow`) must NOT use bare `grid-cols-12`. Use stacked groups with responsive breakpoints:
+
+```tsx
+// Correct pattern for dense multi-field rows
+<div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+
+// Or stack logically grouped rows:
+<div className="grid grid-cols-1 gap-4 sm:grid-cols-3">  {/* main fields */}
+<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">  {/* secondary fields */}
+```
+
+❌ Do NOT use `grid-cols-12` without responsive breakpoints
+
+#### Data Tables
+All data tables rely on horizontal scroll via the `overflow-x-auto` in `src/components/ui/table.tsx`. This is acceptable but the following rules apply:
+
+- Tables with **≤ 4 columns**: acceptable without additional adaptation
+- Tables with **5-7 columns**: must have `overflow-x-auto` confirmed on wrapper
+- Tables with **≥ 8 columns**: should hide less-critical columns on mobile using `hidden sm:table-cell` / `hidden md:table-cell` on `TableHead` and `TableCell`
+- Inline `<table>` elements (not using the shadcn `Table` component) **must** be wrapped in `<div className="overflow-x-auto rounded-md border">`
+
+```tsx
+// Inline table — correct
+<div className="overflow-x-auto rounded-md border">
+  <table className="w-full text-sm">...</table>
+</div>
+
+// Hiding non-essential columns on mobile
+<TableHead className="hidden md:table-cell">Referencia</TableHead>
+<TableCell className="hidden md:table-cell">{payment.reference}</TableCell>
+```
+
+#### Dialogs / Modals
+The base `dialog.tsx` is already responsive. New dialogs must:
+
+- Use `DialogFooter` for action buttons (it auto-stacks on mobile)
+- NOT override `max-w` with a fixed pixel value wider than `max-w-2xl`
+- Use `grid grid-cols-1 gap-4 sm:grid-cols-2` for multi-column form fields inside dialogs
+
+```tsx
+// Correct dialog footer
+<DialogFooter>
+  <Button variant="outline" onClick={onClose}>Cancelar</Button>
+  <Button type="submit">Guardar</Button>
+</DialogFooter>
+```
+
+❌ Do NOT place buttons in a bare `flex justify-end gap-2` inside dialogs — use `DialogFooter`
+
+#### Page Headers
+`PageHeader` uses `flex justify-between`. When adding page headers:
+
+- Keep titles concise (≤ 4 words)
+- Action buttons should use icon-only (`size="icon"`) or short labels on mobile if needed
+- If title + action button can potentially overflow, add `flex-wrap gap-2` to the container
+
+#### Inputs & Text
+- Inputs and textareas already have `text-base md:text-sm` — this prevents iOS Safari zoom on focus. **Preserve this class** on all new input/textarea elements.
+- Never use `text-sm` as the base (mobile) font size on inputs — it triggers unwanted iOS zoom.
+
+#### Filter Bars & Toolbars
+Filter rows above tables must wrap on mobile:
+
+```tsx
+// Correct
+<div className="flex flex-wrap gap-2 mb-4">
+  <SearchInput ... />
+  <Select ... />
+  <Button ...>Filtrar</Button>
+</div>
+```
+
+❌ Do NOT use `flex gap-2` without `flex-wrap` on filter bars
+
+---
+
+### Responsive Checklist (for every new feature/component)
+
+Before marking a component done, verify:
+
+- [ ] All grid layouts have `grid-cols-1` as mobile base
+- [ ] Form field grids use `sm:grid-cols-N`
+- [ ] Page card grids use `md:grid-cols-N`
+- [ ] Button rows use `flex flex-col sm:flex-row` or `DialogFooter`
+- [ ] All `<table>` elements have `overflow-x-auto` wrapper
+- [ ] Tables with ≥ 8 columns hide non-essential columns with `hidden md:table-cell`
+- [ ] No bare `grid-cols-N` without a 1-col mobile base
+- [ ] No fixed widths (`w-[Npx]`) on elements that must be full-width on mobile
+- [ ] Inputs preserve `text-base md:text-sm` to prevent iOS zoom
+- [ ] Filter/toolbar rows have `flex-wrap`
+
+---
+
+### What NOT to do for Responsive
+
+❌ Do NOT add `useMediaQuery`, `react-responsive`, or any JS breakpoint library
+❌ Do NOT add `MobileOnly` / `DesktopOnly` wrapper components
+❌ Do NOT use `@media` CSS queries — use Tailwind responsive prefixes only
+❌ Do NOT add new npm packages for responsive behavior
+❌ Do NOT use `window.innerWidth` or `matchMedia` in components
+❌ Do NOT use `lg:` or `xl:` breakpoints for basic form/table responsiveness

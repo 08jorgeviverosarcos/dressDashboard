@@ -146,7 +146,7 @@ export function OrderItemEditForm({
         </CardHeader>
         <CardContent className="space-y-4">
           {/* Tipo */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label>Tipo</Label>
               <Select value={itemType} onValueChange={handleTypeChange}>
@@ -205,7 +205,7 @@ export function OrderItemEditForm({
           </div>
 
           {/* Cantidad + Precio + Costo */}
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <div className="space-y-2">
               <Label>Cantidad</Label>
               <Input
@@ -226,7 +226,7 @@ export function OrderItemEditForm({
           </div>
 
           {/* Descuento */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label>Tipo de descuento</Label>
               <Select
@@ -274,8 +274,8 @@ export function OrderItemEditForm({
 
           {/* Fecha devolución (solo RENTAL) */}
           {itemType === "RENTAL" && (
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2 max-w-xs">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
                 <Label>Fecha de Devolución</Label>
                 <Input
                   type="date"
@@ -283,7 +283,7 @@ export function OrderItemEditForm({
                   onChange={(e) => setRentalReturnDate(e.target.value)}
                 />
               </div>
-              <div className="space-y-2 max-w-xs">
+              <div className="space-y-2">
                 <Label>Depósito</Label>
                 <MoneyInput
                   value={rentalDeposit}
@@ -301,7 +301,7 @@ export function OrderItemEditForm({
         </CardContent>
       </Card>
 
-      <div className="flex gap-2">
+      <div className="flex flex-col gap-3 sm:flex-row">
         <Button type="submit" disabled={loading}>
           {loading ? "Guardando..." : "Guardar cambios"}
         </Button>

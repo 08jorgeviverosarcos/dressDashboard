@@ -114,7 +114,7 @@ export default function EditarCategoriaPage() {
                 />
               </div>
 
-              <div className="flex justify-between pt-4">
+              <div className="flex flex-col gap-3 sm:flex-row sm:justify-between pt-4">
                 <Button
                   type="button"
                   variant="destructive"
