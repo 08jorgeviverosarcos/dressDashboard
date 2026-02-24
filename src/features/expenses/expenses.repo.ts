@@ -45,7 +45,7 @@ export function findAll(filters?: {
 }
 
 export function findById(id: string) {
-  return prisma.expense.findUnique({
+  return prisma.expense.findFirst({
     where: { id },
     include: orderItemInclude,
   });
@@ -83,11 +83,11 @@ export function update(
 }
 
 export function deleteById(id: string) {
-  return prisma.expense.delete({ where: { id } });
+  return prisma.expense.update({ where: { id }, data: { deletedAt: new Date() } });
 }
 
 export function findOrderIdByOrderItemId(orderItemId: string) {
-  return prisma.orderItem.findUnique({
+  return prisma.orderItem.findFirst({
     where: { id: orderItemId },
     select: { orderId: true },
   });

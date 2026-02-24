@@ -1,17 +1,17 @@
 import { prisma } from "@/lib/prisma";
 
 export function findByOrderItemId(orderItemId: string) {
-  return prisma.rental.findUnique({
+  return prisma.rental.findFirst({
     where: { orderItemId },
     include: {
-      costs: { orderBy: { type: "asc" } },
+      costs: { where: { deletedAt: null }, orderBy: { type: "asc" } },
       orderItem: {
         include: {
           product: true,
           order: {
             include: {
               client: true,
-              items: { include: { product: true, inventoryItem: true } },
+              items: { where: { deletedAt: null }, include: { product: true, inventoryItem: true } },
             },
           },
         },
@@ -21,16 +21,16 @@ export function findByOrderItemId(orderItemId: string) {
 }
 
 export function findByOrderItemIdSimple(orderItemId: string) {
-  return prisma.rental.findUnique({ where: { orderItemId } });
+  return prisma.rental.findFirst({ where: { orderItemId } });
 }
 
 export function findById(id: string) {
-  return prisma.rental.findUnique({
+  return prisma.rental.findFirst({
     where: { id },
     include: {
       orderItem: {
         include: {
-          order: { include: { items: { include: { inventoryItem: true } } } },
+          order: { include: { items: { where: { deletedAt: null }, include: { inventoryItem: true } } } },
         },
       },
     },
@@ -74,7 +74,7 @@ export function updateInventoryItemOnReturn(inventoryItemId: string) {
 }
 
 export function findRentalByIdSimple(rentalId: string) {
-  return prisma.rental.findUnique({
+  return prisma.rental.findFirst({
     where: { id: rentalId },
     include: { orderItem: { include: { order: true } } },
   });
@@ -90,12 +90,12 @@ export function createCost(data: {
 }
 
 export function findCostById(id: string) {
-  return prisma.rentalCost.findUnique({
+  return prisma.rentalCost.findFirst({
     where: { id },
     include: { rental: { include: { orderItem: { include: { order: true } } } } },
   });
 }
 
 export function deleteCost(id: string) {
-  return prisma.rentalCost.delete({ where: { id } });
+  return prisma.rentalCost.update({ where: { id }, data: { deletedAt: new Date() } });
 }

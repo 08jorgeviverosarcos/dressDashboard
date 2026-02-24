@@ -34,9 +34,9 @@ export function findAll(filters?: {
 }
 
 export function findOrderWithPayments(orderId: string) {
-  return prisma.order.findUnique({
+  return prisma.order.findFirst({
     where: { id: orderId },
-    include: { payments: true },
+    include: { payments: { where: { deletedAt: null } } },
   });
 }
 
@@ -103,16 +103,16 @@ export function createPaymentAuditLog(
 }
 
 export function findById(id: string) {
-  return prisma.payment.findUnique({ where: { id } });
+  return prisma.payment.findFirst({ where: { id } });
 }
 
 export function findByIdWithOrder(id: string) {
-  return prisma.payment.findUnique({
+  return prisma.payment.findFirst({
     where: { id },
     include: { order: { include: { client: true } } },
   });
 }
 
 export function deleteById(id: string) {
-  return prisma.payment.delete({ where: { id } });
+  return prisma.payment.update({ where: { id }, data: { deletedAt: new Date() } });
 }

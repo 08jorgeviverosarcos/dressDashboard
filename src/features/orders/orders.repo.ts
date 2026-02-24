@@ -31,34 +31,35 @@ export function findAll(filters?: { search?: string; status?: OrderStatus }) {
     where,
     include: {
       client: true,
-      payments: true,
-      items: { include: { product: true } },
+      payments: { where: { deletedAt: null } },
+      items: { where: { deletedAt: null }, include: { product: true } },
     },
     orderBy: { createdAt: "desc" },
   });
 }
 
 export function findById(id: string) {
-  return prisma.order.findUnique({
+  return prisma.order.findFirst({
     where: { id },
     include: {
       client: true,
       items: {
+        where: { deletedAt: null },
         include: {
           product: true,
           inventoryItem: true,
-          expenses: { orderBy: { date: "desc" } },
-          rental: { include: { costs: true } },
+          expenses: { where: { deletedAt: null }, orderBy: { date: "desc" } },
+          rental: { include: { costs: { where: { deletedAt: null } } } },
         },
       },
-      payments: { orderBy: { paymentDate: "asc" } },
+      payments: { where: { deletedAt: null }, orderBy: { paymentDate: "asc" } },
       auditLogs: { orderBy: { createdAt: "desc" } },
     },
   });
 }
 
 export function findByIdSimple(id: string) {
-  return prisma.order.findUnique({ where: { id } });
+  return prisma.order.findFirst({ where: { id } });
 }
 
 export function create(orderData: OrderData, items: OrderItemFormData[]) {
@@ -121,10 +122,20 @@ export function updateInTransaction(
       include: { rental: true },
     });
 
-    // 2. Borrar todos los items (Rental.orderItemId -> null por onDelete: SetNull)
-    await tx.orderItem.deleteMany({ where: { orderId: id } });
+    // 2. Null out orderItemId on rentals of old items explicitly
+    // (onDelete: SetNull won't fire because soft-delete doesn't issue a real DB DELETE)
+    const oldItemIds = existingItems.map((i) => i.id);
+    if (oldItemIds.length > 0) {
+      await tx.rental.updateMany({
+        where: { orderItemId: { in: oldItemIds } },
+        data: { orderItemId: null },
+      });
+    }
 
-    // 3. Actualizar la orden y crear los nuevos items
+    // 3. Soft-delete old items explicitly
+    await tx.orderItem.updateMany({ where: { orderId: id, deletedAt: null }, data: { deletedAt: new Date() } });
+
+    // 4. Actualizar la orden y crear los nuevos items
     const updatedOrder = await tx.order.update({
       where: { id },
       data: {
@@ -158,7 +169,7 @@ export function updateInTransaction(
       include: { items: true },
     });
 
-    // 4. Para items tipo RENTAL, re-asociar rentals existentes o crear nuevos
+    // 5. Para items tipo RENTAL, re-asociar rentals existentes o crear nuevos
     const rentalItems = updatedOrder.items.filter((i) => i.itemType === "RENTAL");
 
     for (const newItem of rentalItems) {
@@ -221,20 +232,64 @@ export function updateStatusInTransaction(
 
 export function deleteWithCascade(id: string) {
   return prisma.$transaction(async (tx) => {
-    await tx.payment.deleteMany({ where: { orderId: id } });
-    await tx.rental.deleteMany({ where: { orderItem: { is: { orderId: id } } } });
-    await tx.order.delete({ where: { id } });
+    // 1. Find orderItems for this order (middleware adds deletedAt: null)
+    const orderItems = await tx.orderItem.findMany({ where: { orderId: id } });
+    const orderItemIds = orderItems.map((i) => i.id);
+
+    // 2. Soft-delete expenses linked to these orderItems
+    if (orderItemIds.length > 0) {
+      await tx.expense.updateMany({
+        where: { orderItemId: { in: orderItemIds } },
+        data: { deletedAt: new Date() },
+      });
+    }
+
+    // 3. Find rentals linked to these orderItems (middleware adds deletedAt: null)
+    const rentals = await tx.rental.findMany({
+      where: { orderItemId: { in: orderItemIds } },
+    });
+    const rentalIds = rentals.map((r) => r.id);
+
+    // 4. Soft-delete rentalCosts
+    if (rentalIds.length > 0) {
+      await tx.rentalCost.updateMany({
+        where: { rentalId: { in: rentalIds } },
+        data: { deletedAt: new Date() },
+      });
+    }
+
+    // 5. Soft-delete rentals
+    if (rentalIds.length > 0) {
+      await tx.rental.updateMany({
+        where: { id: { in: rentalIds } },
+        data: { deletedAt: new Date() },
+      });
+    }
+
+    // 6. Soft-delete payments
+    await tx.payment.updateMany({ where: { orderId: id }, data: { deletedAt: new Date() } });
+
+    // 7. Soft-delete orderItems
+    if (orderItemIds.length > 0) {
+      await tx.orderItem.updateMany({
+        where: { id: { in: orderItemIds } },
+        data: { deletedAt: new Date() },
+      });
+    }
+
+    // 8. Soft-delete the order
+    await tx.order.update({ where: { id }, data: { deletedAt: new Date() } });
   });
 }
 
 export function findOrderItemById(id: string) {
-  return prisma.orderItem.findUnique({
+  return prisma.orderItem.findFirst({
     where: { id },
     include: {
       product: true,
       inventoryItem: true,
-      expenses: { orderBy: { date: "desc" } },
-      rental: { include: { costs: { orderBy: { type: "asc" } } } },
+      expenses: { where: { deletedAt: null }, orderBy: { date: "desc" } },
+      rental: { include: { costs: { where: { deletedAt: null }, orderBy: { type: "asc" } } } },
       order: {
         select: {
           id: true,
@@ -247,13 +302,13 @@ export function findOrderItemById(id: string) {
 }
 
 export function findOrderItemForDeletion(id: string) {
-  return prisma.orderItem.findUnique({
+  return prisma.orderItem.findFirst({
     where: { id },
     include: {
       rental: { select: { id: true } },
       order: {
         include: {
-          items: true,
+          items: { where: { deletedAt: null } },
         },
       },
     },
@@ -318,10 +373,25 @@ export function deleteOrderItemAndUpdateTotals(
   newTotalCost: number
 ) {
   return prisma.$transaction(async (tx) => {
+    // Soft-delete expenses linked to this orderItem
+    await tx.expense.updateMany({
+      where: { orderItemId },
+      data: { deletedAt: new Date() },
+    });
+
     if (rentalId) {
-      await tx.rental.delete({ where: { id: rentalId } });
+      // Soft-delete rentalCosts for this rental
+      await tx.rentalCost.updateMany({
+        where: { rentalId },
+        data: { deletedAt: new Date() },
+      });
+      // Soft-delete the rental
+      await tx.rental.update({ where: { id: rentalId }, data: { deletedAt: new Date() } });
     }
-    await tx.orderItem.delete({ where: { id: orderItemId } });
+
+    // Soft-delete the orderItem
+    await tx.orderItem.update({ where: { id: orderItemId }, data: { deletedAt: new Date() } });
+
     await tx.order.update({
       where: { id: orderId },
       data: { totalPrice: newTotalPrice, totalCost: newTotalCost },

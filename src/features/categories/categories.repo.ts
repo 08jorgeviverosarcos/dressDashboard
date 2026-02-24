@@ -16,14 +16,14 @@ export function findAll(filters?: { search?: string }) {
 }
 
 export function findById(id: string) {
-  return prisma.category.findUnique({
+  return prisma.category.findFirst({
     where: { id },
-    include: { products: { where: { isActive: true } } },
+    include: { products: { where: { isActive: true, deletedAt: null } } },
   });
 }
 
 export function findByCode(code: string) {
-  return prisma.category.findUnique({ where: { code } });
+  return prisma.category.findFirst({ where: { code } });
 }
 
 export function findByCodeExcluding(code: string, excludeId: string) {
@@ -50,7 +50,7 @@ export function update(id: string, data: { name: string; code: string }) {
 }
 
 export function deleteById(id: string) {
-  return prisma.category.delete({ where: { id } });
+  return prisma.category.update({ where: { id }, data: { deletedAt: new Date() } });
 }
 
 export function countActiveProducts(categoryId: string) {

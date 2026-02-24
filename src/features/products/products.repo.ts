@@ -19,18 +19,19 @@ export function findAll(filters?: {
 
   return prisma.product.findMany({
     where,
-    include: { inventoryItems: true, category: true },
+    include: { inventoryItems: { where: { deletedAt: null } }, category: true },
     orderBy: { code: "asc" },
   });
 }
 
 export function findById(id: string) {
-  return prisma.product.findUnique({
+  return prisma.product.findFirst({
     where: { id },
     include: {
       category: true,
-      inventoryItems: { orderBy: { createdAt: "desc" } },
+      inventoryItems: { where: { deletedAt: null }, orderBy: { createdAt: "desc" } },
       orderItems: {
+        where: { deletedAt: null },
         include: { order: { include: { client: true } } },
         orderBy: { order: { orderDate: "desc" } },
         take: 10,
@@ -40,7 +41,7 @@ export function findById(id: string) {
 }
 
 export function findByCode(code: string) {
-  return prisma.product.findUnique({ where: { code } });
+  return prisma.product.findFirst({ where: { code } });
 }
 
 export function findByCodeExcluding(code: string, excludeId: string) {

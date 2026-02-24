@@ -13,17 +13,18 @@ export function findAll(search?: string) {
 
   return prisma.client.findMany({
     where,
-    include: { orders: { select: { id: true } } },
+    include: { orders: { where: { deletedAt: null }, select: { id: true } } },
     orderBy: { name: "asc" },
   });
 }
 
 export function findById(id: string) {
-  return prisma.client.findUnique({
+  return prisma.client.findFirst({
     where: { id },
     include: {
       orders: {
-        include: { payments: true },
+        where: { deletedAt: null },
+        include: { payments: { where: { deletedAt: null } } },
         orderBy: { orderDate: "desc" },
       },
     },
@@ -52,7 +53,7 @@ export function update(
 }
 
 export function deleteById(id: string) {
-  return prisma.client.delete({ where: { id } });
+  return prisma.client.update({ where: { id }, data: { deletedAt: new Date() } });
 }
 
 export function countOrders(clientId: string) {

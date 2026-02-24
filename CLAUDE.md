@@ -254,3 +254,55 @@ If a change could alter runtime behavior, financial correctness, or data integri
 **DO NOT DO IT** unless explicitly instructed.
 
 When in doubt: **STOP AND ASK**.
+
+---
+
+## 16. Soft Delete (Logical Deletion)
+
+All data is **never permanently deleted** from the database. Records are marked with `deletedAt` instead.
+
+### Models with soft delete
+All models **except `AuditLog`** have `deletedAt DateTime?` and `@@index([deletedAt])`:
+- `Client`, `Category`, `Product`, `InventoryItem`
+- `Order`, `OrderItem`, `Payment`, `Expense`
+- `Rental`, `RentalCost`
+
+`AuditLog` is **immutable** — it has no `deletedAt` and is never deleted.
+
+### New models
+Every new model (except audit/immutable ones) **must** include:
+```prisma
+deletedAt DateTime?
+@@index([deletedAt])
+```
+
+### Extension (automatic read filtering)
+`src/lib/prisma.ts` uses Prisma Client Extensions (`$extends`) that:
+- Adds `where: { deletedAt: null }` automatically to top-level `findMany`, `findFirst`, `count`, `aggregate`, `groupBy`
+
+**Not handled by the extension (must be explicit in repos):**
+- `delete` → must use `update { where, data: { deletedAt: new Date() } }`
+- `deleteMany` → must use `updateMany { where, data: { deletedAt: new Date() } }`
+- `findUnique` → must use `findFirst` instead (extension cannot add non-unique fields to `findUnique` where)
+
+❌ Never use `delete`, `deleteMany`, or `findUnique` on soft-delete models in repos
+❌ Never use hard deletes in application code (seed `prisma/seed.ts` is the only exception)
+
+### Nested includes (hasMany only)
+All **hasMany** nested includes must add `where: { deletedAt: null }` to exclude soft-deleted children.
+BelongsTo/hasOne includes do NOT need this (middleware does not filter them).
+
+```typescript
+// correct
+items: { where: { deletedAt: null }, include: { product: true } }
+
+// incorrect — soft-deleted items would appear
+items: { include: { product: true } }
+```
+
+### Cascade soft delete
+DB-level cascade (`onDelete: Cascade`, `onDelete: SetNull`) does **not** fire for soft deletes because no real `DELETE` is issued. Cascade must be done **explicitly in repos**:
+
+1. Soft-delete children before the parent
+2. Use `updateMany`/`update` directly with `data: { deletedAt: new Date() }` (not `deleteMany`/`delete`) to avoid double middleware interception
+3. For `onDelete: SetNull` relations (e.g., `Rental.orderItemId`), explicitly null out the FK before soft-deleting the parent item

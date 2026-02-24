@@ -117,6 +117,7 @@ model OrderItem {
   costSource      CostSource     @default(MANUAL)
   costAmount      Decimal        @default(0) @db.Decimal(12, 2)
   notes           String?
+  deletedAt       DateTime?
   expenses        Expense[]
   rental          Rental?
   inventoryItem   InventoryItem? @relation(fields: [inventoryItemId], references: [id])
@@ -125,6 +126,7 @@ model OrderItem {
 
   @@index([orderId])
   @@index([productId])
+  @@index([deletedAt])
 }
 
 model Payment {
@@ -137,11 +139,13 @@ model Payment {
   reference     String?
   notes         String?
   createdAt     DateTime      @default(now())
+  deletedAt     DateTime?
   auditLogs     AuditLog[]
   order         Order         @relation(fields: [orderId], references: [id])
 
   @@index([orderId])
   @@index([paymentDate])
+  @@index([deletedAt])
 }
 
 model Expense {
@@ -157,11 +161,13 @@ model Expense {
   orderItemId   String?
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
+  deletedAt     DateTime?
   orderItem     OrderItem?    @relation(fields: [orderItemId], references: [id])
 
   @@index([orderItemId])
   @@index([date])
   @@index([category])
+  @@index([deletedAt])
 }
 
 model Rental {
@@ -172,8 +178,11 @@ model Rental {
   deposit          Decimal      @default(0) @db.Decimal(12, 2)
   createdAt        DateTime     @default(now())
   updatedAt        DateTime     @updatedAt
+  deletedAt        DateTime?
   orderItem        OrderItem?   @relation(fields: [orderItemId], references: [id], onDelete: SetNull)
   costs            RentalCost[]
+
+  @@index([deletedAt])
 }
 
 model RentalCost {
@@ -182,9 +191,11 @@ model RentalCost {
   type        String
   amount      Decimal @db.Decimal(12, 2)
   description String?
+  deletedAt   DateTime?
   rental      Rental  @relation(fields: [rentalId], references: [id], onDelete: Cascade)
 
   @@index([rentalId])
+  @@index([deletedAt])
 }
 
 model AuditLog {
