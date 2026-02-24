@@ -3,6 +3,7 @@
 import { Input } from "@/components/ui/input";
 import { MoneyInput } from "@/components/shared/MoneyInput";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
@@ -33,6 +34,7 @@ interface OrderItemRowProps {
     discountValue: number | null;
     costAmount: number;
     rentalReturnDate: string;
+    rentalDeposit: number;
   };
   products: ProductOption[];
   onChange: (index: number, field: string, value: unknown) => void;
@@ -54,6 +56,7 @@ export function OrderItemRow({ index, item, products, onChange, onRemove }: Orde
     onChange(index, "unitPrice", 0);
     onChange(index, "costAmount", 0);
     onChange(index, "rentalReturnDate", "");
+    onChange(index, "rentalDeposit", 0);
   }
 
   function handleProductChange(productId: string) {
@@ -64,10 +67,11 @@ export function OrderItemRow({ index, item, products, onChange, onRemove }: Orde
       onChange(index, "description", product.description ?? "");
       if (item.itemType === "RENTAL") {
         onChange(index, "unitPrice", product.rentalPrice ?? product.salePrice ?? 0);
+        onChange(index, "costAmount", 0);
       } else {
         onChange(index, "unitPrice", product.salePrice ?? 0);
+        onChange(index, "costAmount", product.cost ?? 0);
       }
-      onChange(index, "costAmount", product.cost ?? 0);
     }
   }
 
@@ -82,12 +86,29 @@ export function OrderItemRow({ index, item, products, onChange, onRemove }: Orde
     return lineTotal;
   })();
 
+  const itemTypeLabel =
+    item.itemType === "SALE"
+      ? "Venta"
+      : item.itemType === "RENTAL"
+        ? "Alquiler"
+        : "Servicio";
+
   return (
-    <div className="space-y-2 rounded-md border p-3">
-      {/* Fila 1: Tipo + Producto/Nombre + Cantidad + Precio + Costo + Subtotal + Eliminar */}
+    <div className="space-y-3 rounded-md border p-3">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <p className="text-xs font-medium text-muted-foreground">Item {index + 1}</p>
+          <Badge variant="outline" className="text-[10px]">{itemTypeLabel}</Badge>
+        </div>
+        <Button variant="ghost" size="icon" onClick={() => onRemove(index)} type="button">
+          <Trash2 className="h-4 w-4 text-destructive" />
+        </Button>
+      </div>
+
+      {/* Fila 1: Tipo + Producto/Nombre + Cantidad + Precio + Costo + Subtotal */}
       <div className="grid grid-cols-12 gap-2 items-end">
         <div className="col-span-2">
-          {index === 0 && <label className="text-xs font-medium text-muted-foreground mb-1 block">Tipo</label>}
+          <label className="text-xs font-medium text-muted-foreground mb-1 block">Tipo</label>
           <Select value={item.itemType} onValueChange={handleTypeChange}>
             <SelectTrigger>
               <SelectValue />
@@ -101,11 +122,9 @@ export function OrderItemRow({ index, item, products, onChange, onRemove }: Orde
         </div>
 
         <div className="col-span-4">
-          {index === 0 && (
-            <label className="text-xs font-medium text-muted-foreground mb-1 block">
-              {item.itemType === "SERVICE" ? "Nombre" : "Producto"}
-            </label>
-          )}
+          <label className="text-xs font-medium text-muted-foreground mb-1 block">
+            {item.itemType === "SERVICE" ? "Nombre" : "Producto"}
+          </label>
           {item.itemType === "SERVICE" ? (
             <Input
               value={item.name}
@@ -129,7 +148,7 @@ export function OrderItemRow({ index, item, products, onChange, onRemove }: Orde
         </div>
 
         <div className="col-span-1">
-          {index === 0 && <label className="text-xs font-medium text-muted-foreground mb-1 block">Cant.</label>}
+          <label className="text-xs font-medium text-muted-foreground mb-1 block">Cant.</label>
           <Input
             type="number"
             min={1}
@@ -139,7 +158,7 @@ export function OrderItemRow({ index, item, products, onChange, onRemove }: Orde
         </div>
 
         <div className="col-span-2">
-          {index === 0 && <label className="text-xs font-medium text-muted-foreground mb-1 block">Precio Unit.</label>}
+          <label className="text-xs font-medium text-muted-foreground mb-1 block">Precio Unit.</label>
           <MoneyInput
             value={item.unitPrice}
             onValueChange={(value) => onChange(index, "unitPrice", value ?? 0)}
@@ -147,7 +166,7 @@ export function OrderItemRow({ index, item, products, onChange, onRemove }: Orde
         </div>
 
         <div className="col-span-2">
-          {index === 0 && <label className="text-xs font-medium text-muted-foreground mb-1 block">Costo</label>}
+          <label className="text-xs font-medium text-muted-foreground mb-1 block">Costo</label>
           <MoneyInput
             value={item.costAmount}
             onValueChange={(value) => onChange(index, "costAmount", value ?? 0)}
@@ -155,15 +174,8 @@ export function OrderItemRow({ index, item, products, onChange, onRemove }: Orde
         </div>
 
         <div className="col-span-1 text-right">
-          {index === 0 && <label className="text-xs font-medium text-muted-foreground mb-1 block">Subtotal</label>}
-          <p className="text-sm font-medium py-2">{formatCurrency(subtotal)}</p>
-        </div>
-
-        <div className="col-span-1 flex justify-end">
-          {index === 0 && <label className="text-xs font-medium text-muted-foreground mb-1 block">&nbsp;</label>}
-          <Button variant="ghost" size="icon" onClick={() => onRemove(index)} type="button">
-            <Trash2 className="h-4 w-4 text-destructive" />
-          </Button>
+          <label className="text-xs font-medium text-muted-foreground mb-1 block">Subtotal</label>
+          <p className="text-sm font-semibold py-2 whitespace-nowrap">{formatCurrency(subtotal)}</p>
         </div>
       </div>
 
@@ -241,6 +253,13 @@ export function OrderItemRow({ index, item, products, onChange, onRemove }: Orde
               type="date"
               value={item.rentalReturnDate}
               onChange={(e) => onChange(index, "rentalReturnDate", e.target.value)}
+            />
+          </div>
+          <div className="col-span-3">
+            <label className="text-xs font-medium text-muted-foreground mb-1 block">Depósito</label>
+            <MoneyInput
+              value={item.rentalDeposit}
+              onValueChange={(value) => onChange(index, "rentalDeposit", value ?? 0)}
             />
           </div>
         </div>

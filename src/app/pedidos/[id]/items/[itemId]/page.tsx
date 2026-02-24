@@ -109,6 +109,12 @@ export default async function OrderItemDetailPage({ params }: Props) {
             <span className="text-muted-foreground">Costo</span>
             <span>{formatCurrency(item.costAmount)}</span>
           </div>
+          {item.itemType === "RENTAL" && rental && (
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Depósito</span>
+              <span>{formatCurrency(rental.deposit)}</span>
+            </div>
+          )}
           <div className="flex justify-between font-medium border-t pt-3">
             <span>Subtotal</span>
             <span>{formatCurrency(subtotal)}</span>

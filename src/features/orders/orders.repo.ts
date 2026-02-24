@@ -179,6 +179,7 @@ export function updateInTransaction(
           data: {
             orderItemId: newItem.id,
             ...(formItem?.rentalReturnDate !== undefined && { returnDate: formItem.rentalReturnDate ?? null }),
+            ...(formItem?.rentalDeposit !== undefined && { deposit: formItem.rentalDeposit ?? 0 }),
           },
         });
       } else if (formItem) {
@@ -187,7 +188,7 @@ export function updateInTransaction(
           data: {
             orderItemId: newItem.id,
             returnDate: formItem.rentalReturnDate ?? null,
-            deposit: 0,
+            deposit: formItem.rentalDeposit ?? 0,
           },
         });
       }
@@ -276,6 +277,10 @@ export function updateOrderItemInTransaction(
     costAmount: number;
     notes: string | null;
   },
+  rentalData: {
+    returnDate: Date | null;
+    deposit: number;
+  } | null,
   newTotalPrice: number,
   newTotalCost: number
 ) {
@@ -288,6 +293,20 @@ export function updateOrderItemInTransaction(
       where: { id: orderId },
       data: { totalPrice: newTotalPrice, totalCost: newTotalCost },
     });
+    if (rentalData) {
+      await tx.rental.upsert({
+        where: { orderItemId: orderItemId },
+        update: {
+          returnDate: rentalData.returnDate,
+          deposit: rentalData.deposit,
+        },
+        create: {
+          orderItemId: orderItemId,
+          returnDate: rentalData.returnDate,
+          deposit: rentalData.deposit,
+        },
+      });
+    }
   });
 }
 

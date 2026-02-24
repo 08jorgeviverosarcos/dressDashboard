@@ -59,6 +59,7 @@ export default async function EditarPedidoPage({ params }: Props) {
             rentalReturnDate: i.rental?.returnDate
               ? i.rental.returnDate.toISOString().split("T")[0]
               : "",
+            rentalDeposit: i.rental?.deposit ? toDecimalNumber(i.rental.deposit) : 0,
           })),
         }}
       />

@@ -31,7 +31,7 @@ export async function createOrder(
         await rentalRepo.create({
           orderItemId: createdItem.id,
           returnDate: item.rentalReturnDate ?? null,
-          deposit: 0,
+          deposit: item.rentalDeposit ?? 0,
         });
       }
     }
@@ -148,6 +148,12 @@ export async function updateOrderItem(
       costAmount: data.costAmount,
       notes: data.notes || null,
     },
+    data.itemType === "RENTAL"
+      ? {
+          returnDate: data.rentalReturnDate ?? null,
+          deposit: data.rentalDeposit ?? 0,
+        }
+      : null,
     newTotalPrice,
     newTotalCost
   );

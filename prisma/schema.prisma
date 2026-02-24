@@ -7,14 +7,17 @@ datasource db {
 }
 
 model Client {
-  id        String   @id @default(cuid())
+  id        String    @id @default(cuid())
   name      String
   phone     String?
   email     String?
   notes     String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
   orders    Order[]
+
+  @@index([deletedAt])
 }
 
 model Category {
@@ -23,7 +26,10 @@ model Category {
   code      String    @unique
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
   products  Product[]
+
+  @@index([deletedAt])
 }
 
 model Product {
@@ -41,10 +47,12 @@ model Product {
   isActive       Boolean         @default(true)
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
+  deletedAt      DateTime?
   inventoryItems InventoryItem[]
   orderItems     OrderItem[]
 
   @@index([categoryId])
+  @@index([deletedAt])
 }
 
 model InventoryItem {
@@ -57,11 +65,13 @@ model InventoryItem {
   notes          String?
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
+  deletedAt      DateTime?
   product        Product         @relation(fields: [productId], references: [id])
   orderItems     OrderItem[]
 
   @@index([productId])
   @@index([status])
+  @@index([deletedAt])
 }
 
 model Order {
@@ -80,6 +90,7 @@ model Order {
   notes             String?
   createdAt         DateTime    @default(now())
   updatedAt         DateTime    @updatedAt
+  deletedAt         DateTime?
   auditLogs         AuditLog[]
   client            Client      @relation(fields: [clientId], references: [id])
   items             OrderItem[]
@@ -88,6 +99,7 @@ model Order {
   @@index([clientId])
   @@index([status])
   @@index([orderDate])
+  @@index([deletedAt])
 }
 
 model OrderItem {

@@ -55,6 +55,7 @@ export default async function EditarOrderItemPage({ params }: Props) {
           rentalReturnDate: item.rental?.returnDate
             ? item.rental.returnDate.toISOString().split("T")[0]
             : "",
+          rentalDeposit: item.rental?.deposit ? toDecimalNumber(item.rental.deposit) : 0,
         }}
       />
     </div>

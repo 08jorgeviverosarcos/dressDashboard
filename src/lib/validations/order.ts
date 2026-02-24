@@ -14,6 +14,7 @@ export const orderItemSchema = z.object({
   costAmount: z.number().min(0).default(0),
   notes: z.string().optional().or(z.literal("")),
   rentalReturnDate: z.date().optional().nullable(),
+  rentalDeposit: z.number().min(0).optional().nullable(),
 }).refine(
   (data) => {
     if (data.itemType === "SALE" || data.itemType === "RENTAL") {

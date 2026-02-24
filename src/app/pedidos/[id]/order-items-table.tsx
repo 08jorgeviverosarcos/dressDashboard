@@ -23,6 +23,7 @@ interface OrderItemRow {
   discountValue: number | string | null;
   costAmount: number | string;
   product: { code: string } | null;
+  rental: { deposit: number | string } | null;
 }
 
 interface OrderItemsTableProps {
@@ -106,6 +107,15 @@ export function OrderItemsTable({ items, orderId }: OrderItemsTableProps) {
       header: "Costo",
       className: "text-right",
       cell: (row) => formatCurrency(row.costAmount),
+    },
+    {
+      key: "deposito",
+      header: "Depósito",
+      className: "text-right",
+      cell: (row) =>
+        row.itemType === "RENTAL" && row.rental
+          ? formatCurrency(row.rental.deposit)
+          : "—",
     },
     {
       key: "subtotal",

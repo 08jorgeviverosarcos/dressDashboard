@@ -60,6 +60,7 @@ interface OrderFormProps {
       discountValue: number | null;
       costAmount: number;
       rentalReturnDate: string;
+      rentalDeposit: number;
     }[];
   };
 }
@@ -75,6 +76,7 @@ const emptyItem = {
   discountValue: null as number | null,
   costAmount: 0,
   rentalReturnDate: "",
+  rentalDeposit: 0,
 };
 
 export function OrderForm({ clients, products, initialData }: OrderFormProps) {
@@ -168,6 +170,7 @@ export function OrderForm({ clients, products, initialData }: OrderFormProps) {
         costSource: "MANUAL" as const,
         costAmount: i.costAmount,
         rentalReturnDate: i.rentalReturnDate ? new Date(i.rentalReturnDate) : null,
+        rentalDeposit: i.itemType === "RENTAL" ? i.rentalDeposit : null,
       })),
     };
 
@@ -284,7 +287,7 @@ export function OrderForm({ clients, products, initialData }: OrderFormProps) {
             Agregar Item
           </Button>
           <Separator />
-          <div className="flex justify-end gap-8 text-sm">
+          <div className="flex justify-end gap-8 rounded-md border bg-muted/20 px-4 py-3 text-sm">
             <div>
               <span className="text-muted-foreground">Total Precio: </span>
               <span className="font-bold text-lg">{formatCurrency(totalPrice)}</span>

@@ -43,6 +43,7 @@ interface OrderItemEditFormProps {
     inventoryItemId: string | null;
     notes: string;
     rentalReturnDate: string;
+    rentalDeposit: number;
   };
 }
 
@@ -65,6 +66,7 @@ export function OrderItemEditForm({
   const [discountValue, setDiscountValue] = useState<number | null>(initialValues.discountValue);
   const [costAmount, setCostAmount] = useState(initialValues.costAmount);
   const [rentalReturnDate, setRentalReturnDate] = useState(initialValues.rentalReturnDate);
+  const [rentalDeposit, setRentalDeposit] = useState(initialValues.rentalDeposit);
 
   const filteredProducts = products.filter((p) => {
     if (itemType === "SALE") return p.type === "SALE" || p.type === "BOTH";
@@ -80,6 +82,7 @@ export function OrderItemEditForm({
     setUnitPrice(0);
     setCostAmount(0);
     setRentalReturnDate("");
+    setRentalDeposit(0);
   }
 
   function handleProductChange(pid: string) {
@@ -90,10 +93,11 @@ export function OrderItemEditForm({
       setDescription(product.description ?? "");
       if (itemType === "RENTAL") {
         setUnitPrice(product.rentalPrice ?? product.salePrice ?? 0);
+        setCostAmount(0);
       } else {
         setUnitPrice(product.salePrice ?? 0);
+        setCostAmount(product.cost ?? 0);
       }
-      setCostAmount(product.cost ?? 0);
     }
   }
 
@@ -122,6 +126,7 @@ export function OrderItemEditForm({
       costAmount,
       notes: initialValues.notes || undefined,
       rentalReturnDate: rentalReturnDate ? new Date(rentalReturnDate) : null,
+      rentalDeposit: itemType === "RENTAL" ? rentalDeposit : null,
     });
 
     setLoading(false);
@@ -269,13 +274,22 @@ export function OrderItemEditForm({
 
           {/* Fecha devolución (solo RENTAL) */}
           {itemType === "RENTAL" && (
-            <div className="space-y-2 max-w-xs">
-              <Label>Fecha de Devolución</Label>
-              <Input
-                type="date"
-                value={rentalReturnDate}
-                onChange={(e) => setRentalReturnDate(e.target.value)}
-              />
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2 max-w-xs">
+                <Label>Fecha de Devolución</Label>
+                <Input
+                  type="date"
+                  value={rentalReturnDate}
+                  onChange={(e) => setRentalReturnDate(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2 max-w-xs">
+                <Label>Depósito</Label>
+                <MoneyInput
+                  value={rentalDeposit}
+                  onValueChange={(value) => setRentalDeposit(value ?? 0)}
+                />
+              </div>
             </div>
           )}
 
