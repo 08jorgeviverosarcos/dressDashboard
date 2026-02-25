@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { MoneyInput } from "@/components/shared/MoneyInput";
 import { Button } from "@/components/ui/button";
@@ -9,6 +10,8 @@ import {
 } from "@/components/ui/select";
 import { Trash2 } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
+import { EntitySelectorTrigger } from "@/components/shared/EntitySelectorTrigger";
+import { EntitySelectorModal, type EntitySelectorColumn } from "@/components/shared/EntitySelectorModal";
 
 interface ProductOption {
   id: string;
@@ -42,6 +45,8 @@ interface OrderItemRowProps {
 }
 
 export function OrderItemRow({ index, item, products, onChange, onRemove }: OrderItemRowProps) {
+  const [productSelectorOpen, setProductSelectorOpen] = useState(false);
+
   const filteredProducts = products.filter((p) => {
     if (item.itemType === "SALE") return p.type === "SALE" || p.type === "BOTH";
     if (item.itemType === "RENTAL") return p.type === "RENTAL" || p.type === "BOTH";
@@ -93,6 +98,14 @@ export function OrderItemRow({ index, item, products, onChange, onRemove }: Orde
         ? "Alquiler"
         : "Servicio";
 
+  const selectedProduct = products.find((p) => p.id === item.productId);
+
+  const productColumns: EntitySelectorColumn<ProductOption>[] = [
+    { key: "code", header: "Código", cell: (p) => p.code, className: "w-[100px]" },
+    { key: "name", header: "Nombre", cell: (p) => p.name },
+    { key: "type", header: "Tipo", cell: (p) => p.type, className: "hidden sm:table-cell" },
+  ];
+
   return (
     <div className="space-y-3 rounded-md border p-3">
       <div className="flex items-center justify-between">
@@ -132,18 +145,29 @@ export function OrderItemRow({ index, item, products, onChange, onRemove }: Orde
               placeholder="Nombre del servicio..."
             />
           ) : (
-            <Select value={item.productId} onValueChange={handleProductChange}>
-              <SelectTrigger>
-                <SelectValue placeholder="Seleccionar..." />
-              </SelectTrigger>
-              <SelectContent>
-                {filteredProducts.map((p) => (
-                  <SelectItem key={p.id} value={p.id}>
-                    {p.code} - {p.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <>
+              <EntitySelectorTrigger
+                placeholder="Seleccionar..."
+                displayValue={selectedProduct ? `${selectedProduct.code} - ${selectedProduct.name}` : undefined}
+                onClick={() => setProductSelectorOpen(true)}
+              />
+              <EntitySelectorModal
+                open={productSelectorOpen}
+                onOpenChange={setProductSelectorOpen}
+                title="Seleccionar Producto"
+                searchPlaceholder="Buscar por código o nombre..."
+                size="lg"
+                items={filteredProducts}
+                columns={productColumns}
+                searchFilter={(p, q) => {
+                  const lower = q.toLowerCase();
+                  return p.code.toLowerCase().includes(lower) || p.name.toLowerCase().includes(lower);
+                }}
+                getItemId={(p) => p.id}
+                selectedId={item.productId}
+                onSelect={(p) => handleProductChange(p.id)}
+              />
+            </>
           )}
         </div>
 

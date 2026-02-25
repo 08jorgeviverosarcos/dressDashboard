@@ -8,10 +8,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
+import { EntitySelectorTrigger } from "@/components/shared/EntitySelectorTrigger";
+import { EntitySelectorModal, type EntitySelectorColumn } from "@/components/shared/EntitySelectorModal";
+import { ClientQuickForm } from "@/features/clients/components/ClientQuickForm";
 import { MoneyInput } from "@/components/shared/MoneyInput";
 import { OrderItemRow } from "./OrderItemRow";
 import { formatCurrency } from "@/lib/utils";
@@ -85,6 +85,10 @@ export function OrderForm({ clients, products, initialData }: OrderFormProps) {
 
   const [orderNumber, setOrderNumber] = useState<number | "">(initialData?.orderNumber ?? "");
   const [clientId, setClientId] = useState(initialData?.clientId ?? "");
+  const [clientName, setClientName] = useState(
+    initialData ? (clients.find((c) => c.id === initialData.clientId)?.name ?? "") : ""
+  );
+  const [clientSelectorOpen, setClientSelectorOpen] = useState(false);
   const [orderDate, setOrderDate] = useState(
     initialData?.orderDate ?? new Date().toISOString().split("T")[0]
   );
@@ -192,6 +196,10 @@ export function OrderForm({ clients, products, initialData }: OrderFormProps) {
     }
   }
 
+  const clientColumns: EntitySelectorColumn<ClientOption>[] = [
+    { key: "name", header: "Nombre", cell: (c) => c.name },
+  ];
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <Card>
@@ -214,16 +222,32 @@ export function OrderForm({ clients, products, initialData }: OrderFormProps) {
             </div>
             <div className="space-y-2">
               <Label>Cliente *</Label>
-              <Select value={clientId} onValueChange={setClientId}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleccionar cliente..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {clients.map((c) => (
-                    <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <EntitySelectorTrigger
+                placeholder="Seleccionar cliente..."
+                displayValue={clientName || undefined}
+                onClick={() => setClientSelectorOpen(true)}
+                onClear={() => { setClientId(""); setClientName(""); }}
+              />
+              <EntitySelectorModal
+                open={clientSelectorOpen}
+                onOpenChange={setClientSelectorOpen}
+                title="Seleccionar Cliente"
+                searchPlaceholder="Buscar por nombre..."
+                items={clients}
+                columns={clientColumns}
+                searchFilter={(c, q) => c.name.toLowerCase().includes(q.toLowerCase())}
+                getItemId={(c) => c.id}
+                selectedId={clientId}
+                onSelect={(c) => { setClientId(c.id); setClientName(c.name); }}
+                allowCreate
+                createLabel="Crear cliente"
+                renderCreateForm={({ onCreated, onCancel }) => (
+                  <ClientQuickForm
+                    onCreated={(c) => { setClientId(c.id); setClientName(c.name); onCreated(c); }}
+                    onCancel={onCancel}
+                  />
+                )}
+              />
             </div>
             <div className="space-y-2">
               <Label>Fecha del Pedido</Label>

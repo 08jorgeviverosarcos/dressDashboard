@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -29,6 +29,9 @@ import { productSchema, type ProductFormData } from "@/lib/validations/product";
 import { createProduct, getSuggestedProductCode, updateProduct } from "@/lib/actions/products";
 import { PRODUCT_TYPE_LABELS } from "@/lib/constants/categories";
 import { Loader2 } from "lucide-react";
+import { EntitySelectorTrigger } from "@/components/shared/EntitySelectorTrigger";
+import { EntitySelectorModal, type EntitySelectorColumn } from "@/components/shared/EntitySelectorModal";
+import { CategoryQuickForm } from "@/features/products/components/CategoryQuickForm";
 
 interface Category {
   id: string;
@@ -48,6 +51,8 @@ export function ProductForm({ categories, productId, initialData }: ProductFormP
   const hasManualCodeEdit = useRef(false);
   const isApplyingSuggestion = useRef(false);
   const suggestionRequestId = useRef(0);
+
+  const [categorySelectorOpen, setCategorySelectorOpen] = useState(false);
 
   const form = useForm<ProductFormData>({
     resolver: zodResolver(productSchema),
@@ -101,6 +106,11 @@ export function ProductForm({ categories, productId, initialData }: ProductFormP
       toast.error(result.error);
     }
   }
+
+  const categoryColumns: EntitySelectorColumn<Category>[] = [
+    { key: "name", header: "Nombre", cell: (c) => c.name },
+    { key: "code", header: "Código", cell: (c) => c.code, className: "w-[100px]" },
+  ];
 
   return (
     <Card>
@@ -180,23 +190,31 @@ export function ProductForm({ categories, productId, initialData }: ProductFormP
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Categoría</FormLabel>
-                    <Select
-                      value={field.value ?? ""}
-                      onValueChange={(v) => field.onChange(v || null)}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Sin categoría" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {categories.map((cat) => (
-                          <SelectItem key={cat.id} value={cat.id}>
-                            {cat.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <FormControl>
+                      <EntitySelectorTrigger
+                        placeholder="Sin categoría"
+                        displayValue={categories.find((c) => c.id === field.value)?.name}
+                        onClick={() => setCategorySelectorOpen(true)}
+                        onClear={() => field.onChange(null)}
+                      />
+                    </FormControl>
+                    <EntitySelectorModal
+                      open={categorySelectorOpen}
+                      onOpenChange={setCategorySelectorOpen}
+                      title="Seleccionar Categoría"
+                      searchPlaceholder="Buscar categoría..."
+                      items={categories}
+                      columns={categoryColumns}
+                      searchFilter={(c, q) => c.name.toLowerCase().includes(q.toLowerCase())}
+                      getItemId={(c) => c.id}
+                      selectedId={field.value ?? undefined}
+                      onSelect={(c) => field.onChange(c.id)}
+                      allowCreate
+                      createLabel="Crear categoría"
+                      renderCreateForm={({ onCreated, onCancel }) => (
+                        <CategoryQuickForm onCreated={onCreated} onCancel={onCancel} />
+                      )}
+                    />
                     <FormMessage />
                   </FormItem>
                 )}

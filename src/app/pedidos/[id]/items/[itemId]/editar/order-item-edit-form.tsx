@@ -13,6 +13,8 @@ import {
 } from "@/components/ui/select";
 import { formatCurrency } from "@/lib/utils";
 import { updateOrderItem } from "@/lib/actions/orders";
+import { EntitySelectorTrigger } from "@/components/shared/EntitySelectorTrigger";
+import { EntitySelectorModal, type EntitySelectorColumn } from "@/components/shared/EntitySelectorModal";
 
 interface ProductOption {
   id: string;
@@ -55,6 +57,7 @@ export function OrderItemEditForm({
 }: OrderItemEditFormProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [productSelectorOpen, setProductSelectorOpen] = useState(false);
 
   const [itemType, setItemType] = useState(initialValues.itemType);
   const [productId, setProductId] = useState(initialValues.productId);
@@ -138,6 +141,14 @@ export function OrderItemEditForm({
     }
   }
 
+  const selectedProduct = products.find((p) => p.id === productId);
+
+  const productColumns: EntitySelectorColumn<ProductOption>[] = [
+    { key: "code", header: "Código", cell: (p) => p.code, className: "w-[100px]" },
+    { key: "name", header: "Nombre", cell: (p) => p.name },
+    { key: "type", header: "Tipo", cell: (p) => p.type, className: "hidden sm:table-cell" },
+  ];
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <Card>
@@ -172,18 +183,29 @@ export function OrderItemEditForm({
                   required
                 />
               ) : (
-                <Select value={productId} onValueChange={handleProductChange}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Seleccionar..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {filteredProducts.map((p) => (
-                      <SelectItem key={p.id} value={p.id}>
-                        {p.code} - {p.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <>
+                  <EntitySelectorTrigger
+                    placeholder="Seleccionar..."
+                    displayValue={selectedProduct ? `${selectedProduct.code} - ${selectedProduct.name}` : undefined}
+                    onClick={() => setProductSelectorOpen(true)}
+                  />
+                  <EntitySelectorModal
+                    open={productSelectorOpen}
+                    onOpenChange={setProductSelectorOpen}
+                    title="Seleccionar Producto"
+                    searchPlaceholder="Buscar por código o nombre..."
+                    size="lg"
+                    items={filteredProducts}
+                    columns={productColumns}
+                    searchFilter={(p, q) => {
+                      const lower = q.toLowerCase();
+                      return p.code.toLowerCase().includes(lower) || p.name.toLowerCase().includes(lower);
+                    }}
+                    getItemId={(p) => p.id}
+                    selectedId={productId}
+                    onSelect={(p) => handleProductChange(p.id)}
+                  />
+                </>
               )}
             </div>
           </div>

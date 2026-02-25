@@ -23,6 +23,8 @@ import {
   updateInventoryStatus,
   deleteInventoryItem,
 } from "@/lib/actions/inventory";
+import { EntitySelectorTrigger } from "@/components/shared/EntitySelectorTrigger";
+import { EntitySelectorModal, type EntitySelectorColumn } from "@/components/shared/EntitySelectorModal";
 import { formatDate } from "@/lib/utils";
 import { Plus, Trash2 } from "lucide-react";
 import type { InventoryStatus } from "@prisma/client";
@@ -59,8 +61,10 @@ export function InventoryTable({ items, products, currentStatus }: InventoryTabl
 
   // Add form state
   const [newProductId, setNewProductId] = useState("");
+  const [newProductName, setNewProductName] = useState("");
   const [newQuantity, setNewQuantity] = useState(1);
   const [newNotes, setNewNotes] = useState("");
+  const [productSelectorOpen, setProductSelectorOpen] = useState(false);
 
   const statusFilters = ["ALL", ...Object.keys(INVENTORY_STATUS_LABELS)] as const;
 
@@ -99,6 +103,7 @@ export function InventoryTable({ items, products, currentStatus }: InventoryTabl
       toast.success("Item agregado al inventario");
       setAddOpen(false);
       setNewProductId("");
+      setNewProductName("");
       setNewQuantity(1);
       setNewNotes("");
     } else {
@@ -157,6 +162,11 @@ export function InventoryTable({ items, products, currentStatus }: InventoryTabl
     },
   ];
 
+  const productColumns: EntitySelectorColumn<ProductOption>[] = [
+    { key: "code", header: "Código", cell: (p) => p.code, className: "w-[100px]" },
+    { key: "name", header: "Nombre", cell: (p) => p.name },
+  ];
+
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-4">
@@ -198,18 +208,28 @@ export function InventoryTable({ items, products, currentStatus }: InventoryTabl
           <div className="space-y-4">
             <div className="space-y-2">
               <Label>Producto *</Label>
-              <Select value={newProductId} onValueChange={setNewProductId}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleccionar producto..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {products.map((p) => (
-                    <SelectItem key={p.id} value={p.id}>
-                      {p.code} - {p.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <EntitySelectorTrigger
+                placeholder="Seleccionar producto..."
+                displayValue={newProductName || undefined}
+                onClick={() => setProductSelectorOpen(true)}
+                onClear={() => { setNewProductId(""); setNewProductName(""); }}
+              />
+              <EntitySelectorModal
+                open={productSelectorOpen}
+                onOpenChange={setProductSelectorOpen}
+                title="Seleccionar Producto"
+                searchPlaceholder="Buscar por código o nombre..."
+                size="lg"
+                items={products}
+                columns={productColumns}
+                searchFilter={(p, q) => {
+                  const lower = q.toLowerCase();
+                  return p.code.toLowerCase().includes(lower) || p.name.toLowerCase().includes(lower);
+                }}
+                getItemId={(p) => p.id}
+                selectedId={newProductId}
+                onSelect={(p) => { setNewProductId(p.id); setNewProductName(`${p.code} - ${p.name}`); }}
+              />
             </div>
             <div className="space-y-2">
               <Label>Cantidad</Label>
