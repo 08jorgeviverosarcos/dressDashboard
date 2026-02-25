@@ -18,6 +18,17 @@ export async function getProduct(id: string) {
   return service.getProduct(id);
 }
 
+export async function getSuggestedProductCode(
+  categoryId: string
+): Promise<ActionResult<{ code: string }>> {
+  const parsedCategoryId = categoryId.trim();
+  if (!parsedCategoryId) {
+    return { success: false, error: "La categoría es requerida" };
+  }
+
+  return service.getSuggestedProductCode(parsedCategoryId);
+}
+
 export async function createProduct(data: ProductFormData): Promise<ActionResult<{ id: string }>> {
   const parsed = productSchema.safeParse(data);
   if (!parsed.success) {

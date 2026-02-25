@@ -3,6 +3,10 @@ import type { ActionResult } from "@/types";
 import type { ProductFormData } from "@/lib/validations/product";
 import * as repo from "./products.repo";
 
+function escapeRegex(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 export function getProducts(filters?: {
   search?: string;
   type?: ProductType;
@@ -13,6 +17,35 @@ export function getProducts(filters?: {
 
 export function getProduct(id: string) {
   return repo.findById(id);
+}
+
+export async function getSuggestedProductCode(
+  categoryId: string
+): Promise<ActionResult<{ code: string }>> {
+  const category = await repo.findCategoryById(categoryId);
+  if (!category) {
+    return { success: false, error: "Categoría no encontrada" };
+  }
+
+  const prefix = category.code.trim();
+  if (!prefix) {
+    return { success: false, error: "La categoría no tiene código configurado" };
+  }
+
+  const existingCodes = await repo.findCodesByCategoryAndPrefix(categoryId, prefix);
+  const regex = new RegExp(`^${escapeRegex(prefix)}-(\\d+)$`);
+
+  let maxSequential = 0;
+  for (const item of existingCodes) {
+    const match = item.code.match(regex);
+    if (!match) continue;
+    const value = Number.parseInt(match[1], 10);
+    if (Number.isNaN(value)) continue;
+    if (value > maxSequential) maxSequential = value;
+  }
+
+  const nextSequential = String(maxSequential + 1).padStart(3, "0");
+  return { success: true, data: { code: `${prefix}-${nextSequential}` } };
 }
 
 export async function createProduct(

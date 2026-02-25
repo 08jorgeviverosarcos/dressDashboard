@@ -48,6 +48,24 @@ export function findByCodeExcluding(code: string, excludeId: string) {
   return prisma.product.findFirst({ where: { code, NOT: { id: excludeId } } });
 }
 
+export function findCategoryById(categoryId: string) {
+  return prisma.category.findFirst({
+    where: { id: categoryId },
+    select: { code: true },
+  });
+}
+
+export function findCodesByCategoryAndPrefix(categoryId: string, prefix: string) {
+  return prisma.product.findMany({
+    where: {
+      categoryId,
+      isActive: true,
+      code: { startsWith: `${prefix}-` },
+    },
+    select: { code: true },
+  });
+}
+
 export function create(data: Prisma.ProductCreateInput) {
   return prisma.product.create({ data });
 }

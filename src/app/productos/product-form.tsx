@@ -1,7 +1,8 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -25,7 +26,7 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { productSchema, type ProductFormData } from "@/lib/validations/product";
-import { createProduct, updateProduct } from "@/lib/actions/products";
+import { createProduct, getSuggestedProductCode, updateProduct } from "@/lib/actions/products";
 import { PRODUCT_TYPE_LABELS } from "@/lib/constants/categories";
 import { Loader2 } from "lucide-react";
 
@@ -44,6 +45,9 @@ interface ProductFormProps {
 export function ProductForm({ categories, productId, initialData }: ProductFormProps) {
   const router = useRouter();
   const isEdit = !!productId;
+  const hasManualCodeEdit = useRef(false);
+  const isApplyingSuggestion = useRef(false);
+  const suggestionRequestId = useRef(0);
 
   const form = useForm<ProductFormData>({
     resolver: zodResolver(productSchema),
@@ -58,6 +62,32 @@ export function ProductForm({ categories, productId, initialData }: ProductFormP
       description: "",
     },
   });
+  const selectedCategoryId = useWatch({
+    control: form.control,
+    name: "categoryId",
+  });
+
+  useEffect(() => {
+    if (!selectedCategoryId) return;
+
+    const currentCode = (form.getValues("code") ?? "").trim();
+    if (hasManualCodeEdit.current && currentCode) return;
+
+    const currentRequestId = ++suggestionRequestId.current;
+    void (async () => {
+      const result = await getSuggestedProductCode(selectedCategoryId);
+      if (!result.success) return;
+      if (currentRequestId !== suggestionRequestId.current) return;
+
+      isApplyingSuggestion.current = true;
+      form.setValue("code", result.data.code, {
+        shouldDirty: true,
+        shouldTouch: true,
+        shouldValidate: true,
+      });
+      isApplyingSuggestion.current = false;
+    })();
+  }, [form, selectedCategoryId]);
 
   async function onSubmit(data: ProductFormData) {
     const result = isEdit
@@ -88,7 +118,19 @@ export function ProductForm({ categories, productId, initialData }: ProductFormP
                   <FormItem>
                     <FormLabel>Código *</FormLabel>
                     <FormControl>
-                      <Input placeholder="VG-001" {...field} />
+                      <Input
+                        placeholder="VG-001"
+                        name={field.name}
+                        value={field.value}
+                        onBlur={field.onBlur}
+                        ref={field.ref}
+                        onChange={(e) => {
+                          if (!isApplyingSuggestion.current) {
+                            hasManualCodeEdit.current = true;
+                          }
+                          field.onChange(e);
+                        }}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
