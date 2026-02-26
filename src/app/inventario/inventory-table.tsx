@@ -2,29 +2,21 @@
 
 import { useState } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { toast } from "sonner";
 import { DataTable, type Column } from "@/components/shared/DataTable";
 import { SearchInput } from "@/components/shared/SearchInput";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
-} from "@/components/ui/dialog";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { INVENTORY_STATUS_LABELS } from "@/lib/constants/categories";
 import {
-  createInventoryItem,
   updateInventoryStatus,
   deleteInventoryItem,
 } from "@/lib/actions/inventory";
-import { EntitySelectorTrigger } from "@/components/shared/EntitySelectorTrigger";
-import { EntitySelectorModal, type EntitySelectorColumn } from "@/components/shared/EntitySelectorModal";
 import { formatDate } from "@/lib/utils";
 import { Plus, Trash2 } from "lucide-react";
 import type { InventoryStatus } from "@prisma/client";
@@ -39,32 +31,17 @@ interface InventoryRow {
   product: { id: string; code: string; name: string };
 }
 
-interface ProductOption {
-  id: string;
-  code: string;
-  name: string;
-}
-
 interface InventoryTableProps {
   items: InventoryRow[];
-  products: ProductOption[];
   currentStatus?: string;
 }
 
-export function InventoryTable({ items, products, currentStatus }: InventoryTableProps) {
+export function InventoryTable({ items, currentStatus }: InventoryTableProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const [addOpen, setAddOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-
-  // Add form state
-  const [newProductId, setNewProductId] = useState("");
-  const [newProductName, setNewProductName] = useState("");
-  const [newQuantity, setNewQuantity] = useState(1);
-  const [newNotes, setNewNotes] = useState("");
-  const [productSelectorOpen, setProductSelectorOpen] = useState(false);
 
   const statusFilters = ["ALL", ...Object.keys(INVENTORY_STATUS_LABELS)] as const;
 
@@ -82,30 +59,6 @@ export function InventoryTable({ items, products, currentStatus }: InventoryTabl
     const result = await updateInventoryStatus(id, status);
     if (result.success) {
       toast.success("Estado actualizado");
-    } else {
-      toast.error(result.error);
-    }
-  }
-
-  async function handleAdd() {
-    if (!newProductId) {
-      toast.error("Seleccione un producto");
-      return;
-    }
-    setLoading(true);
-    const result = await createInventoryItem({
-      productId: newProductId,
-      quantityOnHand: newQuantity,
-      notes: newNotes || undefined,
-    });
-    setLoading(false);
-    if (result.success) {
-      toast.success("Item agregado al inventario");
-      setAddOpen(false);
-      setNewProductId("");
-      setNewProductName("");
-      setNewQuantity(1);
-      setNewNotes("");
     } else {
       toast.error(result.error);
     }
@@ -162,21 +115,18 @@ export function InventoryTable({ items, products, currentStatus }: InventoryTabl
     },
   ];
 
-  const productColumns: EntitySelectorColumn<ProductOption>[] = [
-    { key: "code", header: "Código", cell: (p) => p.code, className: "w-[100px]" },
-    { key: "name", header: "Nombre", cell: (p) => p.name },
-  ];
-
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-4">
         <div className="flex-1">
           <SearchInput placeholder="Buscar por código o nombre..." />
         </div>
-        <Button onClick={() => setAddOpen(true)}>
-          <Plus className="mr-2 h-4 w-4" />
-          Agregar Item
-        </Button>
+        <Link href="/inventario/nuevo">
+          <Button>
+            <Plus className="mr-2 h-4 w-4" />
+            Agregar Item
+          </Button>
+        </Link>
       </div>
 
       <div className="flex flex-wrap gap-2">
@@ -198,56 +148,6 @@ export function InventoryTable({ items, products, currentStatus }: InventoryTabl
         onRowClick={(row) => router.push(`/inventario/${row.id}`)}
         emptyMessage="No hay items en inventario"
       />
-
-      {/* Add Dialog */}
-      <Dialog open={addOpen} onOpenChange={setAddOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Agregar Item al Inventario</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label>Producto *</Label>
-              <EntitySelectorTrigger
-                placeholder="Seleccionar producto..."
-                displayValue={newProductName || undefined}
-                onClick={() => setProductSelectorOpen(true)}
-                onClear={() => { setNewProductId(""); setNewProductName(""); }}
-              />
-              <EntitySelectorModal
-                open={productSelectorOpen}
-                onOpenChange={setProductSelectorOpen}
-                title="Seleccionar Producto"
-                searchPlaceholder="Buscar por código o nombre..."
-                size="lg"
-                items={products}
-                columns={productColumns}
-                searchFilter={(p, q) => {
-                  const lower = q.toLowerCase();
-                  return p.code.toLowerCase().includes(lower) || p.name.toLowerCase().includes(lower);
-                }}
-                getItemId={(p) => p.id}
-                selectedId={newProductId}
-                onSelect={(p) => { setNewProductId(p.id); setNewProductName(`${p.code} - ${p.name}`); }}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Cantidad</Label>
-              <Input type="number" min={1} value={newQuantity} onChange={(e) => setNewQuantity(Number(e.target.value))} />
-            </div>
-            <div className="space-y-2">
-              <Label>Notas</Label>
-              <Textarea value={newNotes} onChange={(e) => setNewNotes(e.target.value)} placeholder="Notas opcionales..." />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setAddOpen(false)}>Cancelar</Button>
-            <Button onClick={handleAdd} disabled={loading}>
-              {loading ? "Guardando..." : "Agregar"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
       {/* Delete Confirm */}
       <ConfirmDialog

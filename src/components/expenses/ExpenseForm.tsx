@@ -24,6 +24,8 @@ import {
   EXPENSE_TYPE_LABELS,
 } from "@/lib/constants/categories";
 import { Loader2 } from "lucide-react";
+import { EntitySelectorTrigger } from "@/components/shared/EntitySelectorTrigger";
+import { OrderItemSelectorModal } from "@/features/expenses/components/OrderItemSelectorModal";
 
 interface OrderItemOption {
   id: string;
@@ -33,6 +35,8 @@ interface OrderItemOption {
 interface OrderOption {
   id: string;
   orderNumber: number;
+  status: string;
+  clientName: string;
   items: OrderItemOption[];
 }
 
@@ -54,15 +58,7 @@ interface ExpenseFormProps {
 
 export function ExpenseForm({ orders, initialData }: ExpenseFormProps) {
   const router = useRouter();
-
-  const [selectedOrderId, setSelectedOrderId] = useState<string>(() => {
-    if (initialData?.orderItemId) {
-      return orders.find((o) => o.items.some((i) => i.id === initialData.orderItemId))?.id ?? "";
-    }
-    return "";
-  });
-
-  const filteredItems = orders.find((o) => o.id === selectedOrderId)?.items ?? [];
+  const [orderItemSelectorOpen, setOrderItemSelectorOpen] = useState(false);
 
   const form = useForm<ExpenseFormData>({
     resolver: zodResolver(expenseSchema),
@@ -93,6 +89,18 @@ export function ExpenseForm({ orders, initialData }: ExpenseFormProps) {
 
   const selectedCategory = form.watch("category");
   const subcategories = selectedCategory ? getSubcategories(selectedCategory) : [];
+
+  const currentOrderItemId = form.watch("orderItemId");
+  const displayOrderItem = (() => {
+    if (!currentOrderItemId) return undefined;
+    for (const order of orders) {
+      const item = order.items.find((i) => i.id === currentOrderItemId);
+      if (item) {
+        return `Pedido #${order.orderNumber} — ${item.product.code} — ${item.product.name}`;
+      }
+    }
+    return undefined;
+  })();
 
   async function onSubmit(data: ExpenseFormData) {
     const result = initialData
@@ -221,48 +229,28 @@ export function ExpenseForm({ orders, initialData }: ExpenseFormProps) {
               )} />
             </div>
 
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <FormField control={form.control} name="orderItemId" render={({ field }) => (
               <FormItem>
-                <FormLabel>Pedido Asociado (opcional)</FormLabel>
-                <Select
-                  value={selectedOrderId || "none"}
-                  onValueChange={(v) => {
-                    setSelectedOrderId(v === "none" ? "" : v);
-                    form.setValue("orderItemId", "");
-                  }}
-                >
-                  <SelectTrigger><SelectValue placeholder="Ninguno" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">Ninguno</SelectItem>
-                    {orders.map((o) => (
-                      <SelectItem key={o.id} value={o.id}>Pedido #{o.orderNumber}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <FormLabel>Item de Pedido Asociado (opcional)</FormLabel>
+                <FormControl>
+                  <EntitySelectorTrigger
+                    placeholder="Sin pedido asociado"
+                    displayValue={displayOrderItem}
+                    onClick={() => setOrderItemSelectorOpen(true)}
+                    onClear={() => field.onChange("")}
+                  />
+                </FormControl>
+                <OrderItemSelectorModal
+                  open={orderItemSelectorOpen}
+                  onOpenChange={setOrderItemSelectorOpen}
+                  orders={orders}
+                  selectedItemId={field.value || undefined}
+                  onSelect={(item) => field.onChange(item.id)}
+                  onClear={() => field.onChange("")}
+                />
+                <FormMessage />
               </FormItem>
-
-              <FormField control={form.control} name="orderItemId" render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Item del Pedido (opcional)</FormLabel>
-                  <Select
-                    value={field.value || "none"}
-                    onValueChange={(v) => field.onChange(v === "none" ? "" : v)}
-                    disabled={!selectedOrderId || filteredItems.length === 0}
-                  >
-                    <FormControl><SelectTrigger><SelectValue placeholder="Seleccionar item..." /></SelectTrigger></FormControl>
-                    <SelectContent>
-                      <SelectItem value="none">Ninguno</SelectItem>
-                      {filteredItems.map((item) => (
-                        <SelectItem key={item.id} value={item.id}>
-                          {item.product.code} — {item.product.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )} />
-            </div>
+            )} />
 
             <div className="flex flex-col gap-3 sm:flex-row sm:justify-end pt-4">
               <Button type="button" variant="outline" onClick={() => router.push("/gastos")}>Cancelar</Button>

@@ -12,6 +12,8 @@ export default async function NuevoGastoPage() {
         orders={orders.map((o) => ({
           id: o.id,
           orderNumber: o.orderNumber,
+          status: o.status,
+          clientName: o.client?.name ?? "",
           items: o.items.map((i) => ({
             id: i.id,
             product: { name: (i.name || i.product?.name) ?? "", code: i.product?.code ?? "" },
