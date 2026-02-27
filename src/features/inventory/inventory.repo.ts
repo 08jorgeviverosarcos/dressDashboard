@@ -20,7 +20,7 @@ export function findAll(filters?: {
   return prisma.inventoryItem.findMany({
     where,
     include: { product: true },
-    orderBy: { product: { code: "asc" } },
+    orderBy: { createdAt: "desc" },
   });
 }
 
