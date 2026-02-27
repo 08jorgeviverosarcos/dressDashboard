@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { ArrowLeft, Plus } from "lucide-react";
 import {
   Dialog,
@@ -61,8 +61,6 @@ export function EntitySelectorModal<T>({
   items,
   columns,
   searchFilter,
-  getItemId,
-  selectedId,
   onSelect,
   allowCreate,
   createLabel = "Crear nuevo",
@@ -71,13 +69,13 @@ export function EntitySelectorModal<T>({
   const [search, setSearch] = useState("");
   const [view, setView] = useState<"list" | "create">("list");
 
-  // Reset state every time the modal opens
-  useEffect(() => {
-    if (open) {
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (nextOpen) {
       setSearch("");
       setView("list");
     }
-  }, [open]);
+    onOpenChange(nextOpen);
+  };
 
   const filteredItems =
     search === "" ? items : items.filter((item) => searchFilter(item, search));
@@ -100,7 +98,7 @@ export function EntitySelectorModal<T>({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className={size === "lg" ? "sm:max-w-2xl" : undefined}>
         <DialogHeader>
           <div className="flex items-center gap-2">

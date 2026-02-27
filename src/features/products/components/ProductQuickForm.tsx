@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { DialogFooter } from "@/components/ui/dialog";
 import {
   Select,
@@ -19,6 +20,7 @@ import {
   type EntitySelectorColumn,
 } from "@/components/shared/EntitySelectorModal";
 import { CategoryQuickForm } from "@/features/products/components/CategoryQuickForm";
+import { MoneyInput } from "@/components/shared/MoneyInput";
 import { createProduct, getSuggestedProductCode } from "@/lib/actions/products";
 import { PRODUCT_TYPE_LABELS, INVENTORY_TRACKING_LABELS } from "@/lib/constants/categories";
 
@@ -51,6 +53,10 @@ export function ProductQuickForm({
   const [type, setType] = useState("RENTAL");
   const [inventoryTracking, setInventoryTracking] = useState<"UNIT" | "QUANTITY">("UNIT");
   const [categoryId, setCategoryId] = useState<string | null>(null);
+  const [salePrice, setSalePrice] = useState<number | null>(null);
+  const [rentalPrice, setRentalPrice] = useState<number | null>(null);
+  const [cost, setCost] = useState<number | null>(null);
+  const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(false);
   const [categorySelectorOpen, setCategorySelectorOpen] = useState(false);
   const [localCategories, setLocalCategories] = useState<CategoryOption[]>([]);
@@ -95,10 +101,10 @@ export function ProductQuickForm({
       type: type as "RENTAL" | "SALE" | "BOTH",
       inventoryTracking,
       categoryId: categoryId || null,
-      salePrice: null,
-      rentalPrice: null,
-      cost: null,
-      description: "",
+      salePrice,
+      rentalPrice,
+      cost,
+      description,
     });
     setLoading(false);
     if (result.success) {
@@ -202,6 +208,49 @@ export function ProductQuickForm({
             )}
           />
         </div>
+      </div>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <div className="space-y-2">
+          <Label htmlFor="pq-sale-price">Precio Venta</Label>
+          <MoneyInput
+            value={salePrice}
+            placeholder="$0"
+            onValueChange={setSalePrice}
+            className="text-base md:text-sm"
+            name="pq-sale-price"
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="pq-rental-price">Precio Alquiler</Label>
+          <MoneyInput
+            value={rentalPrice}
+            placeholder="$0"
+            onValueChange={setRentalPrice}
+            className="text-base md:text-sm"
+            name="pq-rental-price"
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="pq-cost">Costo</Label>
+          <MoneyInput
+            value={cost}
+            placeholder="$0"
+            onValueChange={setCost}
+            className="text-base md:text-sm"
+            name="pq-cost"
+          />
+        </div>
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="pq-description">Descripción</Label>
+        <Textarea
+          id="pq-description"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          placeholder="Descripción del producto..."
+          rows={3}
+          className="text-base md:text-sm"
+        />
       </div>
       <DialogFooter>
         <Button type="button" variant="outline" onClick={onCancel} disabled={loading}>

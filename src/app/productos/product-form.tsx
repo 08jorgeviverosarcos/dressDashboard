@@ -74,6 +74,8 @@ export function ProductForm({ categories, productId, initialData }: ProductFormP
   });
 
   useEffect(() => {
+    // In edit mode, keep persisted product code unchanged.
+    if (isEdit) return;
     if (!selectedCategoryId) return;
 
     const currentCode = (form.getValues("code") ?? "").trim();
@@ -93,7 +95,7 @@ export function ProductForm({ categories, productId, initialData }: ProductFormP
       });
       isApplyingSuggestion.current = false;
     })();
-  }, [form, selectedCategoryId]);
+  }, [form, isEdit, selectedCategoryId]);
 
   async function onSubmit(data: ProductFormData) {
     const result = isEdit
@@ -133,9 +135,11 @@ export function ProductForm({ categories, productId, initialData }: ProductFormP
                         placeholder="VG-001"
                         name={field.name}
                         value={field.value}
+                        disabled={isEdit}
                         onBlur={field.onBlur}
                         ref={field.ref}
                         onChange={(e) => {
+                          if (isEdit) return;
                           if (!isApplyingSuggestion.current) {
                             hasManualCodeEdit.current = true;
                           }
@@ -143,6 +147,11 @@ export function ProductForm({ categories, productId, initialData }: ProductFormP
                         }}
                       />
                     </FormControl>
+                    {isEdit ? (
+                      <p className="text-xs text-muted-foreground">
+                        El codigo no se puede editar despues de crear el producto.
+                      </p>
+                    ) : null}
                     <FormMessage />
                   </FormItem>
                 )}
