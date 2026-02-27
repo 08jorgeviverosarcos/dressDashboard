@@ -14,13 +14,18 @@ export async function getInventoryItems(filters?: {
 
 export async function createInventoryItem(data: {
   productId: string;
+  inventoryTracking: "UNIT" | "QUANTITY";
+  unitCount?: number;
   quantityOnHand?: number;
-  status?: InventoryStatus;
   notes?: string;
-}): Promise<ActionResult<{ id: string }>> {
+}): Promise<ActionResult<{ ids: string[] }>> {
   const result = await service.createInventoryItem(data);
   if (result.success) revalidatePath("/inventario");
   return result;
+}
+
+export async function getAvailableUnitInventoryItems() {
+  return service.getAvailableUnitInventoryItems();
 }
 
 export async function updateInventoryStatus(

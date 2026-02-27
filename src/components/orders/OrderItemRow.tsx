@@ -18,10 +18,18 @@ interface ProductOption {
   code: string;
   name: string;
   type: string;
+  inventoryTracking: "UNIT" | "QUANTITY";
   salePrice: number | null;
   rentalPrice: number | null;
   cost: number | null;
   description: string | null;
+}
+
+interface InventoryItemOption {
+  id: string;
+  assetCode: string | null;
+  productId: string;
+  status: string;
 }
 
 interface OrderItemRowProps {
@@ -29,6 +37,7 @@ interface OrderItemRowProps {
   item: {
     itemType: string;
     productId: string;
+    inventoryItemId: string | null;
     name: string;
     description: string;
     quantity: number;
@@ -40,12 +49,14 @@ interface OrderItemRowProps {
     rentalDeposit: number;
   };
   products: ProductOption[];
+  inventoryItems: InventoryItemOption[];
   onChange: (index: number, field: string, value: unknown) => void;
   onRemove: (index: number) => void;
 }
 
-export function OrderItemRow({ index, item, products, onChange, onRemove }: OrderItemRowProps) {
+export function OrderItemRow({ index, item, products, inventoryItems, onChange, onRemove }: OrderItemRowProps) {
   const [productSelectorOpen, setProductSelectorOpen] = useState(false);
+  const [inventorySelectorOpen, setInventorySelectorOpen] = useState(false);
 
   const filteredProducts = products.filter((p) => {
     if (item.itemType === "SALE") return p.type === "SALE" || p.type === "BOTH";
@@ -53,9 +64,20 @@ export function OrderItemRow({ index, item, products, onChange, onRemove }: Orde
     return false;
   });
 
+  const selectedProduct = products.find((p) => p.id === item.productId);
+  const isUnitProduct = selectedProduct?.inventoryTracking === "UNIT";
+
+  // Filter available inventory items for the selected product
+  const availableInventoryItems = inventoryItems.filter(
+    (ii) => ii.productId === item.productId
+  );
+
+  const selectedInventoryItem = inventoryItems.find((ii) => ii.id === item.inventoryItemId);
+
   function handleTypeChange(newType: string) {
     onChange(index, "itemType", newType);
     onChange(index, "productId", "");
+    onChange(index, "inventoryItemId", null);
     onChange(index, "name", "");
     onChange(index, "description", "");
     onChange(index, "unitPrice", 0);
@@ -67,6 +89,13 @@ export function OrderItemRow({ index, item, products, onChange, onRemove }: Orde
   function handleProductChange(productId: string) {
     const product = products.find((p) => p.id === productId);
     onChange(index, "productId", productId);
+    // Auto-select if UNIT product with exactly 1 available unit
+    if (product?.inventoryTracking === "UNIT") {
+      const available = inventoryItems.filter((ii) => ii.productId === productId);
+      onChange(index, "inventoryItemId", available.length === 1 ? available[0].id : null);
+    } else {
+      onChange(index, "inventoryItemId", null);
+    }
     if (product) {
       onChange(index, "name", product.name);
       onChange(index, "description", product.description ?? "");
@@ -98,12 +127,15 @@ export function OrderItemRow({ index, item, products, onChange, onRemove }: Orde
         ? "Alquiler"
         : "Servicio";
 
-  const selectedProduct = products.find((p) => p.id === item.productId);
-
   const productColumns: EntitySelectorColumn<ProductOption>[] = [
     { key: "code", header: "Código", cell: (p) => p.code, className: "w-[100px]" },
     { key: "name", header: "Nombre", cell: (p) => p.name },
     { key: "type", header: "Tipo", cell: (p) => p.type, className: "hidden sm:table-cell" },
+  ];
+
+  const inventoryItemColumns: EntitySelectorColumn<InventoryItemOption>[] = [
+    { key: "assetCode", header: "Código unidad", cell: (ii) => ii.assetCode ?? "—" },
+    { key: "status", header: "Estado", cell: (ii) => ii.status },
   ];
 
   return (
@@ -202,6 +234,38 @@ export function OrderItemRow({ index, item, products, onChange, onRemove }: Orde
           <p className="text-sm font-semibold py-2 whitespace-nowrap">{formatCurrency(subtotal)}</p>
         </div>
       </div>
+
+      {/* Selector de unidad física (solo para productos UNIT con más de 1 unidad disponible) */}
+      {item.itemType !== "SERVICE" && isUnitProduct && item.productId && availableInventoryItems.length > 1 && (
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+          <div>
+            <label className="text-xs font-medium text-muted-foreground mb-1 block">Unidad física</label>
+            <EntitySelectorTrigger
+              placeholder="Seleccionar unidad..."
+              displayValue={selectedInventoryItem?.assetCode ?? undefined}
+              onClick={() => setInventorySelectorOpen(true)}
+              onClear={() => onChange(index, "inventoryItemId", null)}
+            />
+            <EntitySelectorModal
+              open={inventorySelectorOpen}
+              onOpenChange={setInventorySelectorOpen}
+              title="Seleccionar Unidad"
+              searchPlaceholder="Buscar por código..."
+              items={availableInventoryItems}
+              columns={inventoryItemColumns}
+              searchFilter={(ii, q) =>
+                (ii.assetCode ?? "").toLowerCase().includes(q.toLowerCase())
+              }
+              getItemId={(ii) => ii.id}
+              selectedId={item.inventoryItemId ?? undefined}
+              onSelect={(ii) => {
+                onChange(index, "inventoryItemId", ii.id);
+                setInventorySelectorOpen(false);
+              }}
+            />
+          </div>
+        </div>
+      )}
 
       {/* Fila 2: Descripcion + Descuento */}
       <div className="grid grid-cols-1 gap-2 items-end sm:grid-cols-2 md:grid-cols-12">

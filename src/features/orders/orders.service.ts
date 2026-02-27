@@ -75,7 +75,22 @@ export async function updateOrderStatus(
     };
   }
 
-  await repo.updateStatusInTransaction(id, newStatus, order.status);
+  const needsDecrement = order.status === "QUOTE" && newStatus === "CONFIRMED";
+  const needsRestore = order.status !== "QUOTE" && newStatus === "CANCELLED";
+
+  const stockAdjustments: Array<{ inventoryItemId: string; delta: number }> = [];
+
+  if (needsDecrement || needsRestore) {
+    const items = await repo.findOrderItemsForStockAdjustment(id);
+    for (const item of items) {
+      const invItem = item.product?.inventoryItems[0];
+      if (!invItem) continue;
+      const delta = needsDecrement ? -item.quantity : item.quantity;
+      stockAdjustments.push({ inventoryItemId: invItem.id, delta });
+    }
+  }
+
+  await repo.updateStatusInTransaction(id, newStatus, order.status, stockAdjustments);
 
   return { success: true, data: undefined };
 }

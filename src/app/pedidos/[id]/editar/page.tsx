@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { getOrder } from "@/lib/actions/orders";
 import { getClients } from "@/lib/actions/clients";
 import { getProducts } from "@/lib/actions/products";
+import { getAvailableUnitInventoryItems } from "@/lib/actions/inventory";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { OrderForm } from "@/components/orders/OrderForm";
 import { toDecimalNumber } from "@/lib/utils";
@@ -12,10 +13,11 @@ interface Props {
 
 export default async function EditarPedidoPage({ params }: Props) {
   const { id } = await params;
-  const [order, clients, products] = await Promise.all([
+  const [order, clients, products, inventoryItems] = await Promise.all([
     getOrder(id),
     getClients(),
     getProducts(),
+    getAvailableUnitInventoryItems(),
   ]);
 
   if (!order) return notFound();
@@ -30,10 +32,17 @@ export default async function EditarPedidoPage({ params }: Props) {
           code: p.code,
           name: p.name,
           type: p.type,
+          inventoryTracking: p.inventoryTracking,
           salePrice: p.salePrice ? Number(p.salePrice) : null,
           rentalPrice: p.rentalPrice ? Number(p.rentalPrice) : null,
           cost: p.cost ? Number(p.cost) : null,
           description: p.description ?? null,
+        }))}
+        inventoryItems={inventoryItems.map((ii) => ({
+          id: ii.id,
+          assetCode: ii.assetCode,
+          productId: ii.productId,
+          status: ii.status,
         }))}
         initialData={{
           id: order.id,
@@ -47,8 +56,10 @@ export default async function EditarPedidoPage({ params }: Props) {
           minDownpaymentPct: toDecimalNumber(order.minDownpaymentPct),
           notes: order.notes ?? "",
           items: order.items.map((i) => ({
+            id: i.id,
             itemType: i.itemType,
             productId: i.productId ?? "",
+            inventoryItemId: i.inventoryItemId ?? null,
             name: i.name,
             description: i.description ?? "",
             quantity: i.quantity,

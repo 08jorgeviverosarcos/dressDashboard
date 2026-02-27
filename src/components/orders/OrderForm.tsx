@@ -29,15 +29,24 @@ interface ProductOption {
   code: string;
   name: string;
   type: string;
+  inventoryTracking: "UNIT" | "QUANTITY";
   salePrice: number | null;
   rentalPrice: number | null;
   cost: number | null;
   description: string | null;
 }
 
+interface InventoryItemOption {
+  id: string;
+  assetCode: string | null;
+  productId: string;
+  status: string;
+}
+
 interface OrderFormProps {
   clients: ClientOption[];
   products: ProductOption[];
+  inventoryItems: InventoryItemOption[];
   initialData?: {
     id: string;
     orderNumber: number;
@@ -50,8 +59,10 @@ interface OrderFormProps {
     minDownpaymentPct: number;
     notes: string;
     items: {
+      id: string;
       itemType: string;
       productId: string;
+      inventoryItemId: string | null;
       name: string;
       description: string;
       quantity: number;
@@ -66,8 +77,10 @@ interface OrderFormProps {
 }
 
 const emptyItem = {
+  id: undefined as string | undefined,
   itemType: "SALE" as string,
   productId: "",
+  inventoryItemId: null as string | null,
   name: "",
   description: "",
   quantity: 1,
@@ -79,7 +92,7 @@ const emptyItem = {
   rentalDeposit: 0,
 };
 
-export function OrderForm({ clients, products, initialData }: OrderFormProps) {
+export function OrderForm({ clients, products, inventoryItems, initialData }: OrderFormProps) {
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
 
@@ -99,7 +112,23 @@ export function OrderForm({ clients, products, initialData }: OrderFormProps) {
   const [minPct, setMinPct] = useState(initialData?.minDownpaymentPct ?? 30);
   const [notes, setNotes] = useState(initialData?.notes ?? "");
   const [items, setItems] = useState<typeof emptyItem[]>(
-    initialData?.items.length ? initialData.items : [{ ...emptyItem }]
+    initialData?.items.length
+      ? initialData.items.map((i) => ({
+          id: i.id,
+          itemType: i.itemType,
+          productId: i.productId,
+          inventoryItemId: i.inventoryItemId ?? null,
+          name: i.name,
+          description: i.description,
+          quantity: i.quantity,
+          unitPrice: i.unitPrice,
+          discountType: i.discountType,
+          discountValue: i.discountValue,
+          costAmount: i.costAmount,
+          rentalReturnDate: i.rentalReturnDate,
+          rentalDeposit: i.rentalDeposit,
+        }))
+      : [{ ...emptyItem }]
   );
 
   const itemsSubtotal = items.reduce((sum, i) => {
@@ -163,8 +192,10 @@ export function OrderForm({ clients, products, initialData }: OrderFormProps) {
       minDownpaymentPct: minPct,
       notes,
       items: items.map((i) => ({
+        id: i.id || undefined,
         itemType: i.itemType as "SALE" | "RENTAL" | "SERVICE",
         productId: i.productId || null,
+        inventoryItemId: i.inventoryItemId || null,
         name: i.name,
         description: i.description || null,
         quantity: i.quantity,
@@ -302,6 +333,7 @@ export function OrderForm({ clients, products, initialData }: OrderFormProps) {
               index={index}
               item={item}
               products={products}
+              inventoryItems={inventoryItems}
               onChange={handleItemChange}
               onRemove={removeItem}
             />

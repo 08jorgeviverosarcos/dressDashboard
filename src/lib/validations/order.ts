@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 export const orderItemSchema = z.object({
+  id: z.string().optional(),
   itemType: z.enum(["SALE", "RENTAL", "SERVICE"]),
   productId: z.string().optional().nullable(),
   inventoryItemId: z.string().optional().nullable(),

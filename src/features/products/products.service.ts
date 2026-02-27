@@ -60,6 +60,7 @@ export async function createProduct(
     code: parsed.code,
     name: parsed.name,
     type: parsed.type,
+    inventoryTracking: parsed.inventoryTracking,
     category: parsed.categoryId
       ? { connect: { id: parsed.categoryId } }
       : undefined,
@@ -86,6 +87,7 @@ export async function updateProduct(
     code: parsed.code,
     name: parsed.name,
     type: parsed.type,
+    inventoryTracking: parsed.inventoryTracking,
     category: parsed.categoryId
       ? { connect: { id: parsed.categoryId } }
       : { disconnect: true },

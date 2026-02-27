@@ -21,6 +21,7 @@ interface ProductOption {
   id: string;
   code: string;
   name: string;
+  inventoryTracking: "UNIT" | "QUANTITY";
 }
 
 interface CategoryOption {
@@ -38,7 +39,9 @@ export function InventoryItemForm({ products, categories }: InventoryItemFormPro
   const router = useRouter();
   const [productId, setProductId] = useState("");
   const [productName, setProductName] = useState("");
-  const [quantity, setQuantity] = useState(1);
+  const [inventoryTracking, setInventoryTracking] = useState<"UNIT" | "QUANTITY">("UNIT");
+  const [unitCount, setUnitCount] = useState(1);
+  const [quantityOnHand, setQuantityOnHand] = useState(1);
   const [notes, setNotes] = useState("");
   const [loading, setLoading] = useState(false);
   const [productSelectorOpen, setProductSelectorOpen] = useState(false);
@@ -61,12 +64,19 @@ export function InventoryItemForm({ products, categories }: InventoryItemFormPro
     setLoading(true);
     const result = await createInventoryItem({
       productId,
-      quantityOnHand: quantity,
+      inventoryTracking,
+      unitCount: inventoryTracking === "UNIT" ? unitCount : undefined,
+      quantityOnHand: inventoryTracking === "QUANTITY" ? quantityOnHand : undefined,
       notes: notes || undefined,
     });
     setLoading(false);
     if (result.success) {
-      toast.success("Item agregado al inventario");
+      const count = result.data.ids.length;
+      toast.success(
+        inventoryTracking === "UNIT"
+          ? `${count} ${count === 1 ? "unidad agregada" : "unidades agregadas"} al inventario`
+          : "Item agregado al inventario"
+      );
       router.push("/inventario");
     } else {
       toast.error(result.error);
@@ -89,6 +99,7 @@ export function InventoryItemForm({ products, categories }: InventoryItemFormPro
               onClear={() => {
                 setProductId("");
                 setProductName("");
+                setInventoryTracking("UNIT");
               }}
             />
             <EntitySelectorModal
@@ -111,6 +122,7 @@ export function InventoryItemForm({ products, categories }: InventoryItemFormPro
               onSelect={(p) => {
                 setProductId(p.id);
                 setProductName(`${p.code} - ${p.name}`);
+                setInventoryTracking(p.inventoryTracking);
               }}
               allowCreate
               createLabel="Crear producto"
@@ -128,16 +140,32 @@ export function InventoryItemForm({ products, categories }: InventoryItemFormPro
           </div>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label>Cantidad</Label>
-              <Input
-                type="number"
-                min={1}
-                value={quantity}
-                onChange={(e) => setQuantity(Number(e.target.value))}
-                className="text-base md:text-sm"
-              />
-            </div>
+            {inventoryTracking === "UNIT" ? (
+              <div className="space-y-2">
+                <Label>Cantidad de unidades a crear</Label>
+                <Input
+                  type="number"
+                  min={1}
+                  value={unitCount}
+                  onChange={(e) => setUnitCount(Number(e.target.value))}
+                  className="text-base md:text-sm"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Se creará un item por unidad física con código auto-generado
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <Label>Cantidad en stock</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  value={quantityOnHand}
+                  onChange={(e) => setQuantityOnHand(Number(e.target.value))}
+                  className="text-base md:text-sm"
+                />
+              </div>
+            )}
           </div>
 
           <div className="space-y-2">

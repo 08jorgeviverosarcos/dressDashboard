@@ -13,7 +13,7 @@ export default async function NuevoInventarioPage() {
     <div className="space-y-6">
       <PageHeader title="Agregar Item" backHref="/inventario" />
       <InventoryItemForm
-        products={products.map((p) => ({ id: p.id, code: p.code, name: p.name }))}
+        products={products.map((p) => ({ id: p.id, code: p.code, name: p.name, inventoryTracking: p.inventoryTracking }))}
         categories={categories.map((c) => ({ id: c.id, name: c.name, code: c.code }))}
       />
     </div>

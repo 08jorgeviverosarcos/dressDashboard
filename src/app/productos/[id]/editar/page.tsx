@@ -23,6 +23,7 @@ export default async function EditarProductoPage({ params }: Props) {
           code: product.code,
           name: product.name,
           type: product.type,
+          inventoryTracking: product.inventoryTracking,
           categoryId: product.categoryId ?? null,
           salePrice: product.salePrice ? Number(product.salePrice) : null,
           rentalPrice: product.rentalPrice ? Number(product.rentalPrice) : null,

@@ -97,6 +97,11 @@ export const PRODUCT_TYPE_LABELS: Record<string, string> = {
   BOTH: "Ambos",
 };
 
+export const INVENTORY_TRACKING_LABELS: Record<string, string> = {
+  UNIT: "Por unidad",
+  QUANTITY: "Por cantidad",
+};
+
 
 export const INVENTORY_STATUS_LABELS: Record<string, string> = {
   AVAILABLE: "Disponible",

@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import {
   PRODUCT_TYPE_LABELS,
+  INVENTORY_TRACKING_LABELS,
 } from "@/lib/constants/categories";
 import { Pencil } from "lucide-react";
 
@@ -41,6 +42,10 @@ export default async function ProductoDetailPage({ params }: Props) {
             <div className="flex justify-between">
               <span className="text-muted-foreground">Tipo</span>
               <Badge variant="secondary">{PRODUCT_TYPE_LABELS[product.type]}</Badge>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Inventario</span>
+              <span>{INVENTORY_TRACKING_LABELS[product.inventoryTracking]}</span>
             </div>
             {product.category && (
               <div className="flex justify-between">

@@ -20,7 +20,7 @@ import {
 } from "@/components/shared/EntitySelectorModal";
 import { CategoryQuickForm } from "@/features/products/components/CategoryQuickForm";
 import { createProduct, getSuggestedProductCode } from "@/lib/actions/products";
-import { PRODUCT_TYPE_LABELS } from "@/lib/constants/categories";
+import { PRODUCT_TYPE_LABELS, INVENTORY_TRACKING_LABELS } from "@/lib/constants/categories";
 
 interface CategoryOption {
   id: string;
@@ -32,6 +32,7 @@ interface ProductOption {
   id: string;
   code: string;
   name: string;
+  inventoryTracking: "UNIT" | "QUANTITY";
 }
 
 interface ProductQuickFormProps {
@@ -48,6 +49,7 @@ export function ProductQuickForm({
   const [code, setCode] = useState("");
   const [name, setName] = useState("");
   const [type, setType] = useState("RENTAL");
+  const [inventoryTracking, setInventoryTracking] = useState<"UNIT" | "QUANTITY">("UNIT");
   const [categoryId, setCategoryId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [categorySelectorOpen, setCategorySelectorOpen] = useState(false);
@@ -91,6 +93,7 @@ export function ProductQuickForm({
       code: code.trim(),
       name: name.trim(),
       type: type as "RENTAL" | "SALE" | "BOTH",
+      inventoryTracking,
       categoryId: categoryId || null,
       salePrice: null,
       rentalPrice: null,
@@ -100,7 +103,7 @@ export function ProductQuickForm({
     setLoading(false);
     if (result.success) {
       toast.success("Producto creado");
-      onCreated({ id: result.data.id, code: code.trim(), name: name.trim() });
+      onCreated({ id: result.data.id, code: code.trim(), name: name.trim(), inventoryTracking });
     } else {
       toast.error(result.error);
     }
@@ -144,6 +147,21 @@ export function ProductQuickForm({
             </SelectTrigger>
             <SelectContent>
               {Object.entries(PRODUCT_TYPE_LABELS).map(([val, label]) => (
+                <SelectItem key={val} value={val}>
+                  {label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-2">
+          <Label>Seguimiento *</Label>
+          <Select value={inventoryTracking} onValueChange={(v) => setInventoryTracking(v as "UNIT" | "QUANTITY")}>
+            <SelectTrigger className="text-base md:text-sm">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {Object.entries(INVENTORY_TRACKING_LABELS).map(([val, label]) => (
                 <SelectItem key={val} value={val}>
                   {label}
                 </SelectItem>

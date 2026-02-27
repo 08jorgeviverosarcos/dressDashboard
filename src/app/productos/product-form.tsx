@@ -27,7 +27,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { productSchema, type ProductFormData } from "@/lib/validations/product";
 import { createProduct, getSuggestedProductCode, updateProduct } from "@/lib/actions/products";
-import { PRODUCT_TYPE_LABELS } from "@/lib/constants/categories";
+import { PRODUCT_TYPE_LABELS, INVENTORY_TRACKING_LABELS } from "@/lib/constants/categories";
 import { Loader2 } from "lucide-react";
 import { EntitySelectorTrigger } from "@/components/shared/EntitySelectorTrigger";
 import { EntitySelectorModal, type EntitySelectorColumn } from "@/components/shared/EntitySelectorModal";
@@ -60,6 +60,7 @@ export function ProductForm({ categories, productId, initialData }: ProductFormP
       code: "",
       name: "",
       type: "DRESS",
+      inventoryTracking: "UNIT" as const,
       categoryId: null,
       salePrice: null,
       rentalPrice: null,
@@ -161,7 +162,7 @@ export function ProductForm({ categories, productId, initialData }: ProductFormP
               />
             </div>
 
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
               <FormField
                 control={form.control}
                 name="type"
@@ -176,6 +177,28 @@ export function ProductForm({ categories, productId, initialData }: ProductFormP
                       </FormControl>
                       <SelectContent>
                         {Object.entries(PRODUCT_TYPE_LABELS).map(([val, label]) => (
+                          <SelectItem key={val} value={val}>{label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="inventoryTracking"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Inventario</FormLabel>
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {Object.entries(INVENTORY_TRACKING_LABELS).map(([val, label]) => (
                           <SelectItem key={val} value={val}>{label}</SelectItem>
                         ))}
                       </SelectContent>

@@ -23,6 +23,7 @@ import type { InventoryStatus } from "@prisma/client";
 
 interface InventoryRow {
   id: string;
+  assetCode: string | null;
   quantityOnHand: number;
   status: string;
   usageCount: number;
@@ -81,6 +82,7 @@ export function InventoryTable({ items, currentStatus }: InventoryTableProps) {
   const columns: Column<InventoryRow>[] = [
     { key: "code", header: "Código", cell: (row) => <span className="font-medium">{row.product.code}</span> },
     { key: "name", header: "Producto", cell: (row) => row.product.name },
+    { key: "assetCode", header: "Código unidad", cell: (row) => row.assetCode ?? "—", className: "hidden sm:table-cell" },
     { key: "quantity", header: "Cantidad", cell: (row) => row.quantityOnHand, className: "text-center" },
     {
       key: "status",

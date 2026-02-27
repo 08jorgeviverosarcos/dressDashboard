@@ -116,27 +116,56 @@ export function updateInTransaction(
   items: OrderItemFormData[]
 ) {
   return prisma.$transaction(async (tx) => {
-    // 1. Buscar items existentes con sus rentals
+    // 1. Obtener items existentes con sus rentals
     const existingItems = await tx.orderItem.findMany({
       where: { orderId: id },
       include: { rental: true },
     });
 
-    // 2. Null out orderItemId on rentals of old items explicitly
-    // (onDelete: SetNull won't fire because soft-delete doesn't issue a real DB DELETE)
-    const oldItemIds = existingItems.map((i) => i.id);
-    if (oldItemIds.length > 0) {
+    // 2. Clasificar items del form
+    const itemsWithId = items.filter((i) => i.id);
+    const itemsWithoutId = items.filter((i) => !i.id);
+
+    // 3. Items a eliminar: los que existen en DB pero no están en el form
+    const keptIds = new Set(itemsWithId.map((i) => i.id));
+    const itemsToDelete = existingItems.filter((ei) => !keptIds.has(ei.id));
+
+    // 4. Nullear orderItemId en rentals de items a eliminar y soft-deletearlos
+    const deleteIds = itemsToDelete.map((i) => i.id);
+    if (deleteIds.length > 0) {
       await tx.rental.updateMany({
-        where: { orderItemId: { in: oldItemIds } },
+        where: { orderItemId: { in: deleteIds } },
         data: { orderItemId: null },
+      });
+      await tx.orderItem.updateMany({
+        where: { id: { in: deleteIds } },
+        data: { deletedAt: new Date() },
       });
     }
 
-    // 3. Soft-delete old items explicitly
-    await tx.orderItem.updateMany({ where: { orderId: id, deletedAt: null }, data: { deletedAt: new Date() } });
+    // 5. Actualizar items existentes (preserva id e inventoryItemId)
+    for (const item of itemsWithId) {
+      await tx.orderItem.update({
+        where: { id: item.id },
+        data: {
+          productId: item.productId || null,
+          inventoryItemId: item.inventoryItemId || null,
+          itemType: item.itemType,
+          name: item.name,
+          description: item.description || null,
+          quantity: item.quantity,
+          unitPrice: item.unitPrice,
+          discountType: item.discountType || null,
+          discountValue: item.discountValue ?? null,
+          costSource: item.costSource,
+          costAmount: item.costAmount,
+          notes: item.notes || null,
+        },
+      });
+    }
 
-    // 4. Actualizar la orden y crear los nuevos items
-    const updatedOrder = await tx.order.update({
+    // 6. Actualizar totales de la orden
+    await tx.order.update({
       where: { id },
       data: {
         clientId: orderData.clientId,
@@ -149,8 +178,15 @@ export function updateInTransaction(
         adjustmentReason: orderData.adjustmentReason || null,
         minDownpaymentPct: orderData.minDownpaymentPct,
         notes: orderData.notes || null,
-        items: {
-          create: items.map((item) => ({
+      },
+    });
+
+    // 7. Crear nuevos items
+    const createdItems = await Promise.all(
+      itemsWithoutId.map((item) =>
+        tx.orderItem.create({
+          data: {
+            orderId: id,
             productId: item.productId || null,
             inventoryItemId: item.inventoryItemId || null,
             itemType: item.itemType,
@@ -163,61 +199,88 @@ export function updateInTransaction(
             costSource: item.costSource,
             costAmount: item.costAmount,
             notes: item.notes || null,
-          })),
-        },
-      },
-      include: { items: true },
-    });
+          },
+        })
+      )
+    );
 
-    // 5. Para items tipo RENTAL, re-asociar rentals existentes o crear nuevos
-    const rentalItems = updatedOrder.items.filter((i) => i.itemType === "RENTAL");
+    // 8. Gestionar rentals de items actualizados (matching por id, no por productId)
+    for (const item of itemsWithId) {
+      if (item.itemType !== "RENTAL") continue;
+      const existingItem = existingItems.find((ei) => ei.id === item.id);
+      if (!existingItem) continue;
 
-    for (const newItem of rentalItems) {
-      const formItem = items.find(
-        (fi) => fi.itemType === "RENTAL" && fi.productId === newItem.productId
-      );
-
-      // Buscar rental huerfano que corresponda (por productId del item original)
-      const matchingOldItem = existingItems.find(
-        (ei) => ei.rental && ei.productId === newItem.productId
-      );
-      const orphanedRental = matchingOldItem?.rental;
-
-      if (orphanedRental) {
-        // Re-asociar el rental existente al nuevo item y actualizar fechas
+      if (existingItem.rental) {
+        // Actualizar fechas del rental existente (ya mantiene su orderItemId)
         await tx.rental.update({
-          where: { id: orphanedRental.id },
+          where: { id: existingItem.rental.id },
           data: {
-            orderItemId: newItem.id,
-            ...(formItem?.rentalReturnDate !== undefined && { returnDate: formItem.rentalReturnDate ?? null }),
-            ...(formItem?.rentalDeposit !== undefined && { deposit: formItem.rentalDeposit ?? 0 }),
+            ...(item.rentalReturnDate !== undefined && { returnDate: item.rentalReturnDate ?? null }),
+            ...(item.rentalDeposit !== undefined && { deposit: item.rentalDeposit ?? 0 }),
           },
         });
-      } else if (formItem) {
-        // Crear nuevo rental
+      } else {
+        // Crear rental para item que ahora es RENTAL
         await tx.rental.create({
           data: {
-            orderItemId: newItem.id,
-            returnDate: formItem.rentalReturnDate ?? null,
-            deposit: formItem.rentalDeposit ?? 0,
+            orderItemId: item.id!,
+            returnDate: item.rentalReturnDate ?? null,
+            deposit: item.rentalDeposit ?? 0,
           },
         });
       }
     }
+
+    // 9. Crear rentals para nuevos items RENTAL
+    for (let i = 0; i < itemsWithoutId.length; i++) {
+      const formItem = itemsWithoutId[i];
+      const createdItem = createdItems[i];
+      if (formItem.itemType !== "RENTAL") continue;
+      await tx.rental.create({
+        data: {
+          orderItemId: createdItem.id,
+          returnDate: formItem.rentalReturnDate ?? null,
+          deposit: formItem.rentalDeposit ?? 0,
+        },
+      });
+    }
+  });
+}
+
+export function findOrderItemsForStockAdjustment(orderId: string) {
+  return prisma.orderItem.findMany({
+    where: {
+      orderId,
+      deletedAt: null,
+      product: { inventoryTracking: "QUANTITY" },
+    },
+    select: {
+      quantity: true,
+      product: {
+        select: {
+          inventoryItems: {
+            where: { deletedAt: null },
+            select: { id: true },
+            take: 1,
+          },
+        },
+      },
+    },
   });
 }
 
 export function updateStatusInTransaction(
   id: string,
   newStatus: OrderStatus,
-  oldStatus: OrderStatus
+  oldStatus: OrderStatus,
+  stockAdjustments: Array<{ inventoryItemId: string; delta: number }>
 ) {
-  return prisma.$transaction([
-    prisma.order.update({
+  return prisma.$transaction(async (tx) => {
+    await tx.order.update({
       where: { id },
       data: { status: newStatus },
-    }),
-    prisma.auditLog.create({
+    });
+    await tx.auditLog.create({
       data: {
         entity: "Order",
         entityId: id,
@@ -226,8 +289,14 @@ export function updateStatusInTransaction(
         newValue: newStatus,
         orderId: id,
       },
-    }),
-  ]);
+    });
+    for (const adj of stockAdjustments) {
+      await tx.inventoryItem.update({
+        where: { id: adj.inventoryItemId },
+        data: { quantityOnHand: { increment: adj.delta } },
+      });
+    }
+  });
 }
 
 export function deleteWithCascade(id: string) {

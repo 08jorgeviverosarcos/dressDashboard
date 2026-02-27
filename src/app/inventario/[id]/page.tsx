@@ -36,6 +36,12 @@ export default async function InventarioDetailPage({ params }: Props) {
             <span className="text-muted-foreground">Código</span>
             <span>{item.product.code}</span>
           </div>
+          {item.assetCode && (
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Código unidad</span>
+              <span className="font-medium">{item.assetCode}</span>
+            </div>
+          )}
           <div className="flex justify-between">
             <span className="text-muted-foreground">Cantidad</span>
             <span>{item.quantityOnHand}</span>

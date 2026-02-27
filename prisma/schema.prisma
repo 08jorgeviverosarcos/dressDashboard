@@ -33,23 +33,24 @@ model Category {
 }
 
 model Product {
-  id             String          @id @default(cuid())
-  code           String          @unique
-  name           String
-  type           ProductType
-  categoryId     String?
-  category       Category?       @relation(fields: [categoryId], references: [id])
-  salePrice      Decimal?        @db.Decimal(12, 2)
-  rentalPrice    Decimal?        @db.Decimal(12, 2)
-  cost           Decimal?        @db.Decimal(12, 2)
-  description    String?
-  imageUrl       String?
-  isActive       Boolean         @default(true)
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
-  deletedAt      DateTime?
-  inventoryItems InventoryItem[]
-  orderItems     OrderItem[]
+  id                String            @id @default(cuid())
+  code              String            @unique
+  name              String
+  type              ProductType
+  inventoryTracking InventoryTracking @default(QUANTITY)
+  categoryId        String?
+  category          Category?         @relation(fields: [categoryId], references: [id])
+  salePrice         Decimal?          @db.Decimal(12, 2)
+  rentalPrice       Decimal?          @db.Decimal(12, 2)
+  cost              Decimal?          @db.Decimal(12, 2)
+  description       String?
+  imageUrl          String?
+  isActive          Boolean           @default(true)
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  deletedAt         DateTime?
+  inventoryItems    InventoryItem[]
+  orderItems        OrderItem[]
 
   @@index([categoryId])
   @@index([deletedAt])
@@ -58,6 +59,7 @@ model Product {
 model InventoryItem {
   id             String          @id @default(cuid())
   productId      String
+  assetCode      String?         @unique
   quantityOnHand Int             @default(1)
   status         InventoryStatus @default(AVAILABLE)
   usageCount     Int             @default(0)
@@ -71,6 +73,7 @@ model InventoryItem {
 
   @@index([productId])
   @@index([status])
+  @@index([assetCode])
   @@index([deletedAt])
 }
 
@@ -278,4 +281,9 @@ enum OrderItemType {
 enum DiscountType {
   FIXED
   PERCENTAGE
+}
+
+enum InventoryTracking {
+  UNIT
+  QUANTITY
 }
