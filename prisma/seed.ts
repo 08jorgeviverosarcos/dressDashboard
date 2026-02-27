@@ -188,6 +188,7 @@ async function main() {
   // Order 1: Completed sale
   const order1 = await prisma.order.create({
     data: {
+      orderNumber: 1,
       clientId: client1.id,
       status: "COMPLETED",
       orderDate: new Date("2025-01-15"),
@@ -250,6 +251,7 @@ async function main() {
   // Order 2: In progress (rental)
   const order2 = await prisma.order.create({
     data: {
+      orderNumber: 2,
       clientId: client2.id,
       status: "IN_PROGRESS",
       orderDate: new Date("2025-02-01"),
@@ -296,6 +298,7 @@ async function main() {
   // Order 3: Quote (quinceañera)
   await prisma.order.create({
     data: {
+      orderNumber: 3,
       clientId: client3.id,
       status: "QUOTE",
       orderDate: new Date("2025-02-10"),
@@ -328,6 +331,7 @@ async function main() {
   // Order 4: Confirmed
   await prisma.order.create({
     data: {
+      orderNumber: 4,
       clientId: client4.id,
       status: "CONFIRMED",
       orderDate: new Date("2025-02-12"),

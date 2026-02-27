@@ -59,7 +59,7 @@ export function ProductForm({ categories, productId, initialData }: ProductFormP
     defaultValues: initialData ?? {
       code: "",
       name: "",
-      type: "DRESS",
+      type: "BOTH",
       inventoryTracking: "UNIT" as const,
       categoryId: null,
       salePrice: null,
