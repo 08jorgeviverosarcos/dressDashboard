@@ -14,11 +14,14 @@ import {
   Tag,
   Menu,
   X,
+  UserCog,
+  LogOut,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
+import { logout } from "@/lib/actions/auth";
 
-const navItems = [
+const baseNavItems = [
   { href: "/", label: "Panel", icon: LayoutDashboard },
   { href: "/pedidos", label: "Pedidos", icon: ShoppingBag },
   { href: "/clientes", label: "Clientes", icon: Users },
@@ -29,9 +32,22 @@ const navItems = [
   { href: "/gastos", label: "Gastos", icon: Receipt },
 ];
 
-export function Sidebar() {
+const adminNavItems = [
+  { href: "/usuarios", label: "Usuarios", icon: UserCog },
+];
+
+type SidebarProps = {
+  userRole: "ADMIN" | "SALES";
+};
+
+export function Sidebar({ userRole }: SidebarProps) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  const navItems = [
+    ...baseNavItems,
+    ...(userRole === "ADMIN" ? adminNavItems : []),
+  ];
 
   const isActive = (href: string) => {
     if (href === "/") return pathname === "/";
@@ -39,31 +55,44 @@ export function Sidebar() {
   };
 
   const navContent = (
-    <nav className="flex flex-col gap-1 p-4">
-      <div className="mb-6 px-3">
-        <h1 className="text-xl font-bold">COP Dress</h1>
-        <p className="text-xs text-muted-foreground">Dashboard</p>
-      </div>
-      {navItems.map((item) => {
-        const Icon = item.icon;
-        return (
-          <Link
-            key={item.href}
-            href={item.href}
-            onClick={() => setMobileOpen(false)}
-            className={cn(
-              "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-              isActive(item.href)
-                ? "bg-primary text-primary-foreground"
-                : "text-muted-foreground hover:bg-muted hover:text-foreground"
-            )}
+    <div className="flex h-full flex-col">
+      <nav className="flex flex-col gap-1 p-4">
+        <div className="mb-6 px-3">
+          <h1 className="text-xl font-bold">COP Dress</h1>
+          <p className="text-xs text-muted-foreground">Dashboard</p>
+        </div>
+        {navItems.map((item) => {
+          const Icon = item.icon;
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              onClick={() => setMobileOpen(false)}
+              className={cn(
+                "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                isActive(item.href)
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
+              )}
+            >
+              <Icon className="h-4 w-4" />
+              {item.label}
+            </Link>
+          );
+        })}
+      </nav>
+      <div className="mt-auto border-t p-4">
+        <form action={logout}>
+          <button
+            type="submit"
+            className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
           >
-            <Icon className="h-4 w-4" />
-            {item.label}
-          </Link>
-        );
-      })}
-    </nav>
+            <LogOut className="h-4 w-4" />
+            Cerrar Sesión
+          </button>
+        </form>
+      </div>
+    </div>
   );
 
   return (

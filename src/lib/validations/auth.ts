@@ -1,0 +1,19 @@
+import { z } from "zod";
+
+export const loginSchema = z.object({
+  email: z.string().min(1, "El email es requerido").email("Email inválido"),
+  password: z.string().min(1, "La contraseña es requerida"),
+});
+
+export type LoginFormData = z.infer<typeof loginSchema>;
+
+export const createUserSchema = z.object({
+  email: z.string().min(1, "El email es requerido").email("Email inválido"),
+  password: z
+    .string()
+    .min(6, "La contraseña debe tener al menos 6 caracteres"),
+  name: z.string().min(1, "El nombre es requerido"),
+  role: z.enum(["ADMIN", "SALES"]),
+});
+
+export type CreateUserFormData = z.infer<typeof createUserSchema>;

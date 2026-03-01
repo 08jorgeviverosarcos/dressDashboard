@@ -219,6 +219,25 @@ model AuditLog {
   @@index([orderId])
 }
 
+enum UserRole {
+  ADMIN
+  SALES
+}
+
+model User {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  passwordHash String
+  name         String
+  role         UserRole  @default(SALES)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  deletedAt    DateTime?
+
+  @@index([deletedAt])
+  @@index([email])
+}
+
 enum OrderStatus {
   QUOTE
   CONFIRMED

@@ -13,6 +13,7 @@ const SOFT_DELETE_MODELS = new Set([
   "Expense",
   "Rental",
   "RentalCost",
+  "User",
 ]);
 
 function createPrismaClient() {

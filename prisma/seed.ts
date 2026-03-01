@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
+import bcrypt from "bcryptjs";
 
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
 const prisma = new PrismaClient({ adapter });
@@ -8,6 +9,7 @@ async function main() {
   console.log("🌱 Seeding database...");
 
   // Clean existing data
+  await prisma.user.deleteMany();
   await prisma.auditLog.deleteMany();
   await prisma.rentalCost.deleteMany();
   await prisma.rental.deleteMany();
@@ -19,6 +21,17 @@ async function main() {
   await prisma.product.deleteMany();
   await prisma.category.deleteMany();
   await prisma.client.deleteMany();
+
+  // ─── Admin User ────────────────────────────────────
+  const adminPasswordHash = await bcrypt.hash("admin123", 12);
+  await prisma.user.create({
+    data: {
+      email: "admin@cop.com",
+      passwordHash: adminPasswordHash,
+      name: "Administrador",
+      role: "ADMIN",
+    },
+  });
 
   // ─── Categories ────────────────────────────────────
   const catGala = await prisma.category.create({ data: { code: "GALA", name: "Gala" } });
