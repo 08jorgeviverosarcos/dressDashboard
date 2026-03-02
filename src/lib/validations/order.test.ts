@@ -111,6 +111,28 @@ describe("orderItemSchema", () => {
     });
     expect(result.success).toBe(true);
   });
+
+  it("rejects percentage discount over 100", () => {
+    const result = orderItemSchema.safeParse({
+      ...validItem,
+      discountType: "PERCENTAGE",
+      discountValue: 101,
+    });
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      const discountError = result.error.issues.find((i) => i.path.includes("discountValue"));
+      expect(discountError?.message).toBe("El porcentaje de descuento no puede ser mayor a 100");
+    }
+  });
+
+  it("allows fixed discount over 100", () => {
+    const result = orderItemSchema.safeParse({
+      ...validItem,
+      discountType: "FIXED",
+      discountValue: 150,
+    });
+    expect(result.success).toBe(true);
+  });
 });
 
 describe("orderSchema", () => {

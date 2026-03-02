@@ -66,7 +66,7 @@ export function OrderItemEditForm({
   const [quantity, setQuantity] = useState(initialValues.quantity);
   const [unitPrice, setUnitPrice] = useState(initialValues.unitPrice);
   const [discountType, setDiscountType] = useState<string | null>(initialValues.discountType);
-  const [discountValue, setDiscountValue] = useState<number | null>(initialValues.discountValue);
+  const [discountValue, setDiscountValue] = useState<number | null | "">(initialValues.discountValue);
   const [costAmount, setCostAmount] = useState(initialValues.costAmount);
   const [rentalReturnDate, setRentalReturnDate] = useState(initialValues.rentalReturnDate);
   const [rentalDeposit, setRentalDeposit] = useState(initialValues.rentalDeposit);
@@ -124,7 +124,7 @@ export function OrderItemEditForm({
       quantity,
       unitPrice,
       discountType: discountType as "FIXED" | "PERCENTAGE" | null,
-      discountValue: discountValue ?? null,
+      discountValue: discountValue === "" ? null : discountValue ?? null,
       costSource: initialValues.costSource as "INVENTORY" | "EXPENSES" | "MANUAL",
       costAmount,
       notes: initialValues.notes || undefined,
@@ -280,13 +280,14 @@ export function OrderItemEditForm({
                 <Input
                   type="number"
                   min={0}
-                  value={discountValue ?? 0}
+                  max={100}
+                  value={discountValue ?? ""}
                   disabled={!discountType}
-                  onChange={(e) => setDiscountValue(Number(e.target.value))}
+                  onChange={(e) => setDiscountValue(e.target.value ? Number(e.target.value) : "")}
                 />
               ) : (
                 <MoneyInput
-                  value={discountValue ?? 0}
+                  value={typeof discountValue === "number" ? discountValue : 0}
                   disabled={!discountType}
                   onValueChange={(value) => setDiscountValue(value ?? 0)}
                 />

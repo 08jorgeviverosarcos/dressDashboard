@@ -109,7 +109,7 @@ export function OrderForm({ clients, products, inventoryItems, initialData }: Or
   const [deliveryDate, setDeliveryDate] = useState(initialData?.deliveryDate ?? "");
   const [adjustmentAmount, setAdjustmentAmount] = useState(initialData?.adjustmentAmount ?? 0);
   const [adjustmentReason, setAdjustmentReason] = useState(initialData?.adjustmentReason ?? "");
-  const [minPct, setMinPct] = useState(initialData?.minDownpaymentPct ?? 30);
+  const [minPct, setMinPct] = useState<number | "">(initialData?.minDownpaymentPct ?? 30);
   const [notes, setNotes] = useState(initialData?.notes ?? "");
   const [items, setItems] = useState<typeof emptyItem[]>(
     initialData?.items.length
@@ -189,7 +189,7 @@ export function OrderForm({ clients, products, inventoryItems, initialData }: Or
       totalCost,
       adjustmentAmount,
       adjustmentReason,
-      minDownpaymentPct: minPct,
+      minDownpaymentPct: minPct === "" ? 0 : minPct,
       notes,
       items: items.map((i) => ({
         id: i.id || undefined,
@@ -312,7 +312,13 @@ export function OrderForm({ clients, products, inventoryItems, initialData }: Or
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-1">
             <div className="space-y-2">
               <Label>% Abono Mínimo</Label>
-              <Input type="number" min={0} max={100} value={minPct} onChange={(e) => setMinPct(Number(e.target.value))} />
+              <Input
+                type="number"
+                min={0}
+                max={100}
+                value={minPct}
+                onChange={(e) => setMinPct(e.target.value ? Number(e.target.value) : "")}
+              />
             </div>
           </div>
           <div className="space-y-2">

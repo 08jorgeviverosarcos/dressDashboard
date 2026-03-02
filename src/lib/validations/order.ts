@@ -16,6 +16,14 @@ export const orderItemSchema = z.object({
   notes: z.string().optional().or(z.literal("")),
   rentalReturnDate: z.date().optional().nullable(),
   rentalDeposit: z.number().min(0).optional().nullable(),
+}).superRefine((data, ctx) => {
+  if (data.discountType === "PERCENTAGE" && typeof data.discountValue === "number" && data.discountValue > 100) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "El porcentaje de descuento no puede ser mayor a 100",
+      path: ["discountValue"],
+    });
+  }
 }).refine(
   (data) => {
     if (data.itemType === "SALE" || data.itemType === "RENTAL") {

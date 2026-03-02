@@ -316,9 +316,10 @@ export function OrderItemRow({ index, item, products, inventoryItems, onChange, 
             <Input
               type="number"
               min={0}
-              value={item.discountValue ?? 0}
+              max={100}
+              value={item.discountValue ?? ""}
               disabled={!item.discountType}
-              onChange={(e) => onChange(index, "discountValue", Number(e.target.value))}
+              onChange={(e) => onChange(index, "discountValue", e.target.value ? Number(e.target.value) : null)}
               placeholder="0"
             />
           ) : (
