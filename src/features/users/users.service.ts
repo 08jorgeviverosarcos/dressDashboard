@@ -74,3 +74,46 @@ export async function deleteUser(
   await repo.deleteById(id);
   return { success: true, data: undefined };
 }
+
+export async function updateUser(
+  id: string,
+  data: {
+    email: string;
+    name: string;
+    role: "ADMIN" | "SALES";
+    password?: string;
+  },
+  currentUserId: string
+): Promise<ActionResult> {
+  const user = await repo.findById(id);
+  if (!user) {
+    return { success: false, error: "Usuario no encontrado" };
+  }
+
+  const existing = await repo.findByEmailExcluding(data.email, id);
+  if (existing) {
+    return { success: false, error: "Ya existe otro usuario con ese email" };
+  }
+
+  if (id === currentUserId && data.role !== "ADMIN") {
+    return { success: false, error: "No puedes quitarte el rol de administrador" };
+  }
+
+  const updateData: {
+    email: string;
+    name: string;
+    role: "ADMIN" | "SALES";
+    passwordHash?: string;
+  } = {
+    email: data.email,
+    name: data.name,
+    role: data.role,
+  };
+
+  if (data.password) {
+    updateData.passwordHash = await bcrypt.hash(data.password, BCRYPT_ROUNDS);
+  }
+
+  await repo.updateById(id, updateData);
+  return { success: true, data: undefined };
+}

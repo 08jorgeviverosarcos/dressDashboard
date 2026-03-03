@@ -5,9 +5,10 @@ import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { deleteUser } from "@/lib/actions/auth";
 import { toast } from "sonner";
 import { useState } from "react";
-import { Trash2 } from "lucide-react";
+import { Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { useRouter } from "next/navigation";
 
 type User = {
   id: string;
@@ -23,6 +24,7 @@ type Props = {
 };
 
 export function UsersTable({ users, currentUserId }: Props) {
+  const router = useRouter();
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -62,19 +64,32 @@ export function UsersTable({ users, currentUserId }: Props) {
     {
       key: "actions",
       header: "",
-      cell: (user) =>
-        user.id !== currentUserId ? (
+      cell: (user) => (
+        <div className="flex items-center justify-end gap-1">
           <Button
             variant="ghost"
             size="icon"
             onClick={(e) => {
               e.stopPropagation();
-              setDeletingId(user.id);
+              router.push(`/usuarios/${user.id}/editar`);
             }}
           >
-            <Trash2 className="h-4 w-4" />
+            <Pencil className="h-4 w-4" />
           </Button>
-        ) : null,
+          {user.id !== currentUserId ? (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={(e) => {
+                e.stopPropagation();
+                setDeletingId(user.id);
+              }}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          ) : null}
+        </div>
+      ),
     },
   ];
 

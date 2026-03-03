@@ -1,6 +1,11 @@
 "use server";
 
-import { loginSchema, createUserSchema } from "@/lib/validations/auth";
+import {
+  loginSchema,
+  createUserSchema,
+  updateUserSchema,
+  type UpdateUserFormData,
+} from "@/lib/validations/auth";
 import type { ActionResult } from "@/types";
 import * as service from "@/features/users/users.service";
 import * as auditRepo from "@/features/audit/audit.repo";
@@ -59,6 +64,25 @@ export async function getUsers() {
   return service.getUsers();
 }
 
+export async function getUser(id: string) {
+  const session = await verifySession();
+  if (session.role !== "ADMIN") {
+    return null;
+  }
+
+  const user = await service.getUser(id);
+  if (!user) {
+    return null;
+  }
+
+  return {
+    id: user.id,
+    email: user.email,
+    name: user.name,
+    role: user.role,
+  };
+}
+
 export async function createUser(data: {
   email: string;
   password: string;
@@ -87,6 +111,55 @@ export async function createUser(data: {
         name: parsed.data.name,
         role: parsed.data.role,
       }),
+    });
+    revalidatePath("/usuarios");
+  }
+
+  return result;
+}
+
+export async function updateUser(
+  id: string,
+  data: UpdateUserFormData
+): Promise<ActionResult> {
+  const session = await verifySession();
+  if (session.role !== "ADMIN") {
+    return { success: false, error: "No autorizado" };
+  }
+
+  const parsed = updateUserSchema.safeParse(data);
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0].message };
+  }
+
+  const userBeforeUpdate = await service.getUser(id);
+
+  const result = await service.updateUser(id, parsed.data, session.userId);
+
+  if (result.success) {
+    const userAfterUpdate = await service.getUser(id);
+    await auditRepo.createAuditLog({
+      entity: "User",
+      entityId: id,
+      action: "UPDATE",
+      oldValue: userBeforeUpdate
+        ? JSON.stringify({
+            email: userBeforeUpdate.email,
+            name: userBeforeUpdate.name,
+            role: userBeforeUpdate.role,
+          })
+        : null,
+      newValue: userAfterUpdate
+        ? JSON.stringify({
+            email: userAfterUpdate.email,
+            name: userAfterUpdate.name,
+            role: userAfterUpdate.role,
+          })
+        : JSON.stringify({
+            email: parsed.data.email,
+            name: parsed.data.name,
+            role: parsed.data.role,
+          }),
     });
     revalidatePath("/usuarios");
   }
