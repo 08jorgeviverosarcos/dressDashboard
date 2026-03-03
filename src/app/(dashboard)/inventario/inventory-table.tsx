@@ -20,6 +20,7 @@ import {
 import { formatDate } from "@/lib/utils";
 import { Plus, Trash2 } from "lucide-react";
 import type { InventoryStatus } from "@prisma/client";
+import { ProductPreviewModal } from "@/features/products/components/ProductPreviewModal";
 
 interface InventoryRow {
   id: string;
@@ -43,6 +44,7 @@ export function InventoryTable({ items, currentStatus }: InventoryTableProps) {
   const searchParams = useSearchParams();
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [previewProductId, setPreviewProductId] = useState<string | null>(null);
 
   const statusFilters = ["ALL", ...Object.keys(INVENTORY_STATUS_LABELS)] as const;
 
@@ -81,7 +83,21 @@ export function InventoryTable({ items, currentStatus }: InventoryTableProps) {
 
   const columns: Column<InventoryRow>[] = [
     { key: "code", header: "Código", cell: (row) => <span className="font-medium">{row.product.code}</span> },
-    { key: "name", header: "Producto", cell: (row) => row.product.name },
+    {
+      key: "name",
+      header: "Producto",
+      cell: (row) => (
+        <button
+          className="text-primary hover:underline text-left"
+          onClick={(e) => {
+            e.stopPropagation();
+            setPreviewProductId(row.product.id);
+          }}
+        >
+          {row.product.name}
+        </button>
+      ),
+    },
     { key: "assetCode", header: "Código unidad", cell: (row) => row.assetCode ?? "—", className: "hidden sm:table-cell" },
     { key: "quantity", header: "Cantidad", cell: (row) => row.quantityOnHand, className: "text-center" },
     {
@@ -161,6 +177,11 @@ export function InventoryTable({ items, currentStatus }: InventoryTableProps) {
         variant="destructive"
         onConfirm={handleDelete}
         loading={loading}
+      />
+
+      <ProductPreviewModal
+        productId={previewProductId}
+        onClose={() => setPreviewProductId(null)}
       />
     </div>
   );

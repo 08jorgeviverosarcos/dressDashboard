@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { deleteOrderItem } from "@/lib/actions/orders";
 import { formatCurrency, toDecimalNumber } from "@/lib/utils";
+import { ProductPreviewModal } from "@/features/products/components/ProductPreviewModal";
 
 // Tipo serializado (Decimal → string | number)
 interface OrderItemRow {
@@ -22,7 +23,7 @@ interface OrderItemRow {
   discountType: "FIXED" | "PERCENTAGE" | null;
   discountValue: number | string | null;
   costAmount: number | string;
-  product: { code: string } | null;
+  product: { id: string; code: string; name: string } | null;
   rental: { deposit: number | string } | null;
 }
 
@@ -36,6 +37,7 @@ export function OrderItemsTable({ items, orderId }: OrderItemsTableProps) {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [deletingName, setDeletingName] = useState<string>("");
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [previewProductId, setPreviewProductId] = useState<string | null>(null);
 
   async function handleDelete() {
     if (!deletingId) return;
@@ -74,7 +76,15 @@ export function OrderItemsTable({ items, orderId }: OrderItemsTableProps) {
             <div className="text-xs text-muted-foreground">{row.description}</div>
           )}
           {row.product && (
-            <div className="text-xs text-muted-foreground">Cod: {row.product.code}</div>
+            <button
+              className="text-xs text-primary hover:underline text-left"
+              onClick={(e) => {
+                e.stopPropagation();
+                setPreviewProductId(row.product!.id);
+              }}
+            >
+              Cod: {row.product.code}
+            </button>
           )}
         </div>
       ),
@@ -173,6 +183,11 @@ export function OrderItemsTable({ items, orderId }: OrderItemsTableProps) {
         variant="destructive"
         onConfirm={handleDelete}
         loading={deleteLoading}
+      />
+
+      <ProductPreviewModal
+        productId={previewProductId}
+        onClose={() => setPreviewProductId(null)}
       />
     </>
   );

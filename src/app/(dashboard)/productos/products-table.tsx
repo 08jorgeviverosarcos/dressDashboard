@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { DataTable, type Column } from "@/components/shared/DataTable";
 import { SearchInput } from "@/components/shared/SearchInput";
@@ -12,6 +13,7 @@ import {
 } from "@/components/ui/select";
 import { PRODUCT_TYPE_LABELS } from "@/lib/constants/categories";
 import { formatCurrency } from "@/lib/utils";
+import { CategoryPreviewModal } from "@/features/categories/components/CategoryPreviewModal";
 
 interface Product {
   id: string;
@@ -32,6 +34,7 @@ export function ProductsTable({ products, currentType }: ProductsTableProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const [previewCategoryId, setPreviewCategoryId] = useState<string | null>(null);
 
   const columns: Column<Product>[] = [
     {
@@ -54,7 +57,20 @@ export function ProductsTable({ products, currentType }: ProductsTableProps) {
     {
       key: "category",
       header: "Categoría",
-      cell: (row) => row.category?.name ?? "-",
+      cell: (row) =>
+        row.category ? (
+          <button
+            className="text-primary hover:underline text-left"
+            onClick={(e) => {
+              e.stopPropagation();
+              setPreviewCategoryId(row.category!.id);
+            }}
+          >
+            {row.category.name}
+          </button>
+        ) : (
+          "-"
+        ),
     },
     {
       key: "salePrice",
@@ -111,6 +127,11 @@ export function ProductsTable({ products, currentType }: ProductsTableProps) {
         data={products}
         onRowClick={(row) => router.push(`/productos/${row.id}`)}
         emptyMessage="No se encontraron productos"
+      />
+
+      <CategoryPreviewModal
+        categoryId={previewCategoryId}
+        onClose={() => setPreviewCategoryId(null)}
       />
     </div>
   );

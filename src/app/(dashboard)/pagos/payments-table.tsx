@@ -15,6 +15,7 @@ import { PAYMENT_METHOD_LABELS, PAYMENT_TYPE_LABELS } from "@/lib/constants/cate
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { deletePayment } from "@/lib/actions/payments";
 import { Trash2 } from "lucide-react";
+import { ClientPreviewModal } from "@/features/clients/components/ClientPreviewModal";
 
 interface PaymentRow {
   id: string;
@@ -26,7 +27,7 @@ interface PaymentRow {
   order: {
     id: string;
     orderNumber: number;
-    client: { name: string };
+    client: { id: string; name: string };
   };
 }
 
@@ -41,6 +42,7 @@ export function PaymentsTable({ payments, currentMethod }: PaymentsTableProps) {
   const searchParams = useSearchParams();
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [previewClientId, setPreviewClientId] = useState<string | null>(null);
 
   const methods = ["ALL", ...Object.keys(PAYMENT_METHOD_LABELS)];
 
@@ -88,7 +90,21 @@ export function PaymentsTable({ payments, currentMethod }: PaymentsTableProps) {
         </Link>
       ),
     },
-    { key: "client", header: "Cliente", cell: (row) => row.order.client.name },
+    {
+      key: "client",
+      header: "Cliente",
+      cell: (row) => (
+        <button
+          className="text-primary hover:underline text-left"
+          onClick={(e) => {
+            e.stopPropagation();
+            setPreviewClientId(row.order.client.id);
+          }}
+        >
+          {row.order.client.name}
+        </button>
+      ),
+    },
     { key: "amount", header: "Monto", cell: (row) => <span className="font-medium">{formatCurrency(row.amount)}</span>, className: "text-right" },
     {
       key: "type",
@@ -183,6 +199,10 @@ export function PaymentsTable({ payments, currentMethod }: PaymentsTableProps) {
         variant="destructive"
         onConfirm={handleDelete}
         loading={deleteLoading}
+      />
+      <ClientPreviewModal
+        clientId={previewClientId}
+        onClose={() => setPreviewClientId(null)}
       />
     </>
   );

@@ -14,6 +14,7 @@ import { formatCurrency, formatDate } from "@/lib/utils";
 import { calculatePaidPercentage } from "@/lib/business/profit";
 import { deleteOrder } from "@/lib/actions/orders";
 import { Trash2 } from "lucide-react";
+import { ClientPreviewModal } from "@/features/clients/components/ClientPreviewModal";
 
 interface OrderRow {
   id: string;
@@ -22,7 +23,7 @@ interface OrderRow {
   eventDate: string | null;
   totalPrice: number | string;
   status: string;
-  client: { name: string };
+  client: { id: string; name: string };
   payments: { amount: number | string }[];
 }
 
@@ -38,6 +39,7 @@ export function OrdersTable({ orders, currentStatus }: OrdersTableProps) {
 
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [previewClientId, setPreviewClientId] = useState<string | null>(null);
 
   const statusFilters = ["ALL", ...Object.keys(ORDER_STATUS_LABELS)];
 
@@ -66,7 +68,21 @@ export function OrdersTable({ orders, currentStatus }: OrdersTableProps) {
 
   const columns: Column<OrderRow>[] = [
     { key: "number", header: "#", cell: (row) => <span className="font-medium">#{row.orderNumber}</span> },
-    { key: "client", header: "Cliente", cell: (row) => row.client.name },
+    {
+      key: "client",
+      header: "Cliente",
+      cell: (row) => (
+        <button
+          className="text-primary hover:underline text-left"
+          onClick={(e) => {
+            e.stopPropagation();
+            setPreviewClientId(row.client.id);
+          }}
+        >
+          {row.client.name}
+        </button>
+      ),
+    },
     { key: "date", header: "Fecha", className: "hidden md:table-cell", cell: (row) => formatDate(row.orderDate) },
     { key: "event", header: "Evento", className: "hidden md:table-cell", cell: (row) => row.eventDate ? formatDate(row.eventDate) : "—" },
     { key: "total", header: "Total", cell: (row) => formatCurrency(row.totalPrice), className: "text-right" },
@@ -146,6 +162,10 @@ export function OrdersTable({ orders, currentStatus }: OrdersTableProps) {
       variant="destructive"
       onConfirm={handleDelete}
       loading={deleteLoading}
+    />
+    <ClientPreviewModal
+      clientId={previewClientId}
+      onClose={() => setPreviewClientId(null)}
     />
     </>
   );
