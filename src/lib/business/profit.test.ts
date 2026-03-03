@@ -9,7 +9,7 @@ describe("calculateOrderProfit", () => {
   it("returns null for non-COMPLETED orders", () => {
     expect(calculateOrderProfit({ status: "QUOTE", totalPrice: 1000, totalCost: 600 })).toBeNull();
     expect(calculateOrderProfit({ status: "CONFIRMED", totalPrice: 1000, totalCost: 600 })).toBeNull();
-    expect(calculateOrderProfit({ status: "DELIVERED", totalPrice: 1000, totalCost: 600 })).toBeNull();
+    expect(calculateOrderProfit({ status: "CANCELLED", totalPrice: 1000, totalCost: 600 })).toBeNull();
   });
 
   it("returns profit for COMPLETED orders", () => {

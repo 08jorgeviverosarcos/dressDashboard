@@ -17,19 +17,16 @@ export function deriveStatusAfterPayment(
     return "CONFIRMED";
   }
 
-  if (paidPct >= 100 && currentStatus === "DELIVERED") {
+  if (paidPct >= 100 && currentStatus === "CONFIRMED") {
     return "COMPLETED";
   }
 
   return currentStatus;
 }
 
-export const VALID_STATUS_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
+export const VALID_STATUS_TRANSITIONS: Partial<Record<OrderStatus, OrderStatus[]>> = {
   QUOTE: ["CONFIRMED", "CANCELLED"],
-  CONFIRMED: ["IN_PROGRESS", "CANCELLED"],
-  IN_PROGRESS: ["READY", "CANCELLED"],
-  READY: ["DELIVERED", "CANCELLED"],
-  DELIVERED: ["COMPLETED", "CANCELLED"],
+  CONFIRMED: ["COMPLETED", "CANCELLED"],
   COMPLETED: [],
   CANCELLED: ["QUOTE"],
 };

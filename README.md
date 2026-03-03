@@ -282,12 +282,12 @@ const parsed = mySchema.safeParse(data);
 ### Flujo de estados de pedido
 
 ```
-QUOTE → CONFIRMED → IN_PROGRESS → READY → DELIVERED → COMPLETED
-  ↓          ↓            ↓          ↓         ↓
-CANCELLED  CANCELLED   CANCELLED  CANCELLED CANCELLED
+QUOTE → CONFIRMED → COMPLETED
+  ↓          ↓
+CANCELLED  CANCELLED
 ```
 
-Los pagos pueden avanzar el estado automáticamente (ver `src/lib/business/status.ts`).
+Los pagos pueden avanzar el estado automáticamente (ejemplo: `CONFIRMED -> COMPLETED` al 100% pagado; ver `src/lib/business/status.ts`).
 
 ### Comandos de Prisma
 

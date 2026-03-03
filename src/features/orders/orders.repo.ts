@@ -282,6 +282,20 @@ export function findUnitInventoryItemsForStatusAdjustment(orderId: string) {
   });
 }
 
+export function findUnitInventoryItemsForDeliveredStatus(orderId: string) {
+  return prisma.orderItem.findMany({
+    where: {
+      orderId,
+      deletedAt: null,
+      inventoryItemId: { not: null },
+      product: { inventoryTracking: "UNIT" },
+      inventoryItem: { is: { deletedAt: null } },
+      itemType: { in: ["SALE", "RENTAL"] },
+    },
+    select: { inventoryItemId: true, itemType: true },
+  });
+}
+
 export function updateStatusInTransaction(
   id: string,
   newStatus: OrderStatus,
@@ -317,10 +331,15 @@ export function updateStatusInTransaction(
           where: { id: update.inventoryItemId, deletedAt: null, status: "AVAILABLE" },
           data: { status: "RESERVED" },
         });
-      } else {
+      } else if (update.status === "AVAILABLE") {
         await tx.inventoryItem.updateMany({
           where: { id: update.inventoryItemId, deletedAt: null },
           data: { status: "AVAILABLE" },
+        });
+      } else {
+        await tx.inventoryItem.updateMany({
+          where: { id: update.inventoryItemId, deletedAt: null },
+          data: { status: update.status },
         });
       }
     }

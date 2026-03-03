@@ -227,9 +227,6 @@ model User {
 enum OrderStatus {
   QUOTE
   CONFIRMED
-  IN_PROGRESS
-  READY
-  DELIVERED
   COMPLETED
   CANCELLED
 }

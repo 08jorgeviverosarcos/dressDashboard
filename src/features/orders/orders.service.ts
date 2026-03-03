@@ -1,6 +1,6 @@
 import type { ActionResult } from "@/types";
 import type { OrderFormData, OrderItemFormData } from "@/lib/validations/order";
-import type { OrderStatus } from "@prisma/client";
+import type { InventoryStatus, OrderStatus } from "@prisma/client";
 import { canTransitionTo } from "@/lib/business/status";
 import { toDecimalNumber } from "@/lib/utils";
 import * as repo from "./orders.repo";
@@ -79,10 +79,11 @@ export async function updateOrderStatus(
   const needsRestore = order.status !== "QUOTE" && newStatus === "CANCELLED";
   const needsReserveUnit = order.status === "QUOTE" && newStatus === "CONFIRMED";
   const needsReleaseUnit = order.status !== "QUOTE" && newStatus === "CANCELLED";
+  const needsSetDeliveredUnitStatus =
+    order.status === "CONFIRMED" && newStatus === "COMPLETED";
 
   const stockAdjustments: Array<{ inventoryItemId: string; delta: number }> = [];
-  const unitStatusUpdates: Array<{ inventoryItemId: string; status: "RESERVED" | "AVAILABLE" }> =
-    [];
+  const unitStatusUpdates: Array<{ inventoryItemId: string; status: InventoryStatus }> = [];
 
   if (needsDecrement || needsRestore) {
     const items = await repo.findOrderItemsForStockAdjustment(id);
@@ -104,6 +105,20 @@ export async function updateOrderStatus(
       unitStatusUpdates.push({
         inventoryItemId: item.inventoryItemId,
         status: needsReserveUnit ? "RESERVED" : "AVAILABLE",
+      });
+    }
+  }
+
+  if (needsSetDeliveredUnitStatus) {
+    const unitItems = await repo.findUnitInventoryItemsForDeliveredStatus(id);
+    const seen = new Set<string>();
+
+    for (const item of unitItems) {
+      if (!item.inventoryItemId || seen.has(item.inventoryItemId)) continue;
+      seen.add(item.inventoryItemId);
+      unitStatusUpdates.push({
+        inventoryItemId: item.inventoryItemId,
+        status: item.itemType === "RENTAL" ? "RENTED" : "SOLD",
       });
     }
   }

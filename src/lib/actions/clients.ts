@@ -10,7 +10,9 @@ export async function getClients(search?: string) {
 }
 
 export async function getClient(id: string) {
-  return service.getClient(id);
+  const client = await service.getClient(id);
+  if (!client) return null;
+  return JSON.parse(JSON.stringify(client));
 }
 
 export async function createClient(data: ClientFormData): Promise<ActionResult<{ id: string }>> {

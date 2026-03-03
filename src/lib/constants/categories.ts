@@ -66,10 +66,7 @@ export const RENTAL_COST_TYPES = [
 export const ORDER_STATUS_LABELS: Record<string, string> = {
   QUOTE: "Cotización",
   CONFIRMED: "Confirmado",
-  IN_PROGRESS: "En proceso",
-  READY: "Listo para entrega",
-  DELIVERED: "Entregado",
-  COMPLETED: "Completado",
+  COMPLETED: "Entregado",
   CANCELLED: "Cancelado",
 };
 

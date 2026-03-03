@@ -47,13 +47,11 @@ export async function updateRental(
     return { success: false, error: "Pedido no encontrado" };
   }
   const orderId = orderItem.orderId;
-  const orderItems = orderItem.order.items;
 
   if (data.actualReturnDate && !rental.actualReturnDate) {
-    for (const item of orderItems) {
-      if (item.inventoryItem) {
-        await repo.updateInventoryItemOnReturn(item.inventoryItem.id);
-      }
+    const currentOrderItem = orderItem.order.items.find((item) => item.id === orderItem.id);
+    if (currentOrderItem?.inventoryItem) {
+      await repo.updateInventoryItemOnReturn(currentOrderItem.inventoryItem.id);
     }
   }
 

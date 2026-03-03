@@ -10,14 +10,8 @@ describe("canTransitionTo", () => {
     const validCases: [string, string][] = [
       ["QUOTE", "CONFIRMED"],
       ["QUOTE", "CANCELLED"],
-      ["CONFIRMED", "IN_PROGRESS"],
+      ["CONFIRMED", "COMPLETED"],
       ["CONFIRMED", "CANCELLED"],
-      ["IN_PROGRESS", "READY"],
-      ["IN_PROGRESS", "CANCELLED"],
-      ["READY", "DELIVERED"],
-      ["READY", "CANCELLED"],
-      ["DELIVERED", "COMPLETED"],
-      ["DELIVERED", "CANCELLED"],
       ["CANCELLED", "QUOTE"],
     ];
 
@@ -31,10 +25,10 @@ describe("canTransitionTo", () => {
 
   describe("invalid transitions", () => {
     const invalidCases: [string, string][] = [
-      ["QUOTE", "DELIVERED"],
+      ["QUOTE", "READY"],
       ["QUOTE", "COMPLETED"],
       ["CONFIRMED", "QUOTE"],
-      ["CONFIRMED", "DELIVERED"],
+      ["CONFIRMED", "READY"],
       ["COMPLETED", "QUOTE"],
       ["COMPLETED", "CANCELLED"],
       ["COMPLETED", "CONFIRMED"],
@@ -73,20 +67,16 @@ describe("deriveStatusAfterPayment", () => {
     expect(deriveStatusAfterPayment("QUOTE", 1000, 30, 500)).toBe("CONFIRMED");
   });
 
-  it("keeps CONFIRMED even at 100% paid (only DELIVERED transitions)", () => {
-    expect(deriveStatusAfterPayment("CONFIRMED", 1000, 30, 1000)).toBe("CONFIRMED");
+  it("transitions CONFIRMED → COMPLETED at exactly 100%", () => {
+    expect(deriveStatusAfterPayment("CONFIRMED", 1000, 30, 1000)).toBe("COMPLETED");
   });
 
-  it("keeps DELIVERED when paid percentage is below 100%", () => {
-    expect(deriveStatusAfterPayment("DELIVERED", 1000, 30, 900)).toBe("DELIVERED");
+  it("keeps CONFIRMED when paid percentage is below 100%", () => {
+    expect(deriveStatusAfterPayment("CONFIRMED", 1000, 30, 900)).toBe("CONFIRMED");
   });
 
-  it("transitions DELIVERED → COMPLETED at exactly 100%", () => {
-    expect(deriveStatusAfterPayment("DELIVERED", 1000, 30, 1000)).toBe("COMPLETED");
-  });
-
-  it("transitions DELIVERED → COMPLETED above 100%", () => {
-    expect(deriveStatusAfterPayment("DELIVERED", 1000, 30, 1100)).toBe("COMPLETED");
+  it("transitions CONFIRMED → COMPLETED above 100%", () => {
+    expect(deriveStatusAfterPayment("CONFIRMED", 1000, 30, 1100)).toBe("COMPLETED");
   });
 
   it("handles Prisma Decimal-like objects for totalPrice and minPct", () => {
