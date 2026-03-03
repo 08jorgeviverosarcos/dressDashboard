@@ -482,3 +482,154 @@ Before marking a component done, verify:
 ❌ Do NOT add new npm packages for responsive behavior
 ❌ Do NOT use `window.innerWidth` or `matchMedia` in components
 ❌ Do NOT use `lg:` or `xl:` breakpoints for basic form/table responsiveness
+
+---
+
+## 18. Preview Modal en Tablas (Entidades Relacionadas)
+
+Cuando una tabla muestra datos de una entidad relacionada (ej: nombre de producto en inventario, nombre de cliente en pedidos), esa columna debe ser **clickeable** y abrir un **modal de vista previa** con la información principal de la entidad.
+
+### Componentes de preview existentes
+
+Los preview modals viven en `src/features/<entidad>/components/<Entidad>PreviewModal.tsx`:
+- `ProductPreviewModal` — para tablas que muestran productos (`src/features/products/components/`)
+- `ClientPreviewModal` — para tablas que muestran clientes (`src/features/clients/components/`)
+- `CategoryPreviewModal` — para tablas que muestran categorías (`src/features/categories/components/`)
+
+### Patrón del cell renderer
+
+```tsx
+// Columna clickeable que abre preview modal
+{
+  key: "relatedEntity",
+  header: "Entidad",
+  cell: (row) => (
+    <button
+      className="text-primary hover:underline text-left"
+      onClick={(e) => {
+        e.stopPropagation();
+        setPreviewEntityId(row.relatedEntity.id);
+      }}
+    >
+      {row.relatedEntity.name}
+    </button>
+  ),
+}
+
+// Si la relación es nullable:
+{
+  key: "relatedEntity",
+  header: "Entidad",
+  cell: (row) =>
+    row.relatedEntity ? (
+      <button
+        className="text-primary hover:underline text-left"
+        onClick={(e) => {
+          e.stopPropagation();
+          setPreviewEntityId(row.relatedEntity!.id);
+        }}
+      >
+        {row.relatedEntity.name}
+      </button>
+    ) : (
+      "-"
+    ),
+}
+```
+
+### Estado y modal en la tabla
+
+```tsx
+// Estado dentro del componente de tabla
+const [previewEntityId, setPreviewEntityId] = useState<string | null>(null);
+
+// Modal al final del JSX
+<EntityPreviewModal
+  entityId={previewEntityId}
+  onClose={() => setPreviewEntityId(null)}
+/>
+```
+
+### Reglas
+
+1. **Estilo**: `className="text-primary hover:underline text-left"` (igual que los links existentes)
+2. **Stop propagation**: SIEMPRE usar `e.stopPropagation()` para no disparar el `onRowClick` de la fila
+3. **Usar `<button>`** no `<Link>` — el modal no navega, solo muestra info
+4. **Estado en la tabla**: `const [previewEntityId, setPreviewEntityId] = useState<string | null>(null)`
+5. **Interface TypeScript**: La interface de la fila **DEBE** incluir el `id` de la entidad relacionada
+6. **Null guard**: Si la relación es nullable, mostrar `"-"` en vez del botón
+
+### Patrón del preview modal
+
+```tsx
+interface EntityPreviewModalProps {
+  entityId: string | null;  // null = cerrado
+  onClose: () => void;
+}
+
+export function EntityPreviewModal({ entityId, onClose }: EntityPreviewModalProps) {
+  const [entity, setEntity] = useState<...>(null);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (entityId) {
+      setLoading(true);
+      setEntity(null);
+      getEntity(entityId).then((data) => {
+        setEntity(data);
+        setLoading(false);
+      });
+    }
+  }, [entityId]);
+
+  return (
+    <Dialog open={!!entityId} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>{loading ? "Cargando..." : entity?.name ?? "Entidad"}</DialogTitle>
+        </DialogHeader>
+
+        {loading ? (
+          <div className="flex justify-center py-8">
+            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+          </div>
+        ) : entity ? (
+          <div className="space-y-3 text-sm">
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Campo</span>
+              <span className="font-medium">{entity.field}</span>
+            </div>
+            {/* más key-value rows */}
+          </div>
+        ) : null}
+
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>Cerrar</Button>
+          {entityId && (
+            <Button asChild>
+              <Link href={`/entidades/${entityId}`}>
+                <ExternalLink className="mr-2 h-4 w-4" />
+                Ver detalle completo
+              </Link>
+            </Button>
+          )}
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+```
+
+### Cuando agregar un nuevo preview modal
+
+Si creas un nuevo módulo con una tabla que muestra datos de otra entidad:
+1. Verifica si ya existe un preview modal para esa entidad (ver lista arriba)
+2. Si no existe, crea uno en `src/features/<entidad>/components/<Entidad>PreviewModal.tsx`
+3. Sigue el mismo patrón interno: fetch on open → loading state → key-value rows → `DialogFooter`
+4. Importa y usa el modal en la tabla
+
+### Cuando NO usar preview modal
+
+- Cuando la relación **no tiene página de detalle propia**
+- Cuando la columna ya es un `<Link>` a la página completa (como "Pedido" en pagos/gastos)
+- En tablas inline de páginas de detalle (ya están en contexto de detalle)
