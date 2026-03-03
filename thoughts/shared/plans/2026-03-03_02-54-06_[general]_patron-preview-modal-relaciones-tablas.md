@@ -789,8 +789,8 @@ Si creas un nuevo modulo con una tabla que muestra datos de otra entidad:
 ### Success Criteria:
 
 #### Automated Verification:
-- [ ] CLAUDE.md se guarda correctamente
-- [ ] No hay conflictos de formato
+- [x] CLAUDE.md se guarda correctamente
+- [x] No hay conflictos de formato
 
 #### Manual Verification:
 - [ ] La seccion es clara y completa para guiar futuros desarrollos
