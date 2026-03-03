@@ -59,7 +59,7 @@ export default async function PedidoDetailPage({ params }: Props) {
       />
 
       {/* Summary Cards */}
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-5">
         <Card>
           <CardContent className="pt-6">
             <div className="text-sm text-muted-foreground">Total</div>
@@ -81,11 +81,15 @@ export default async function PedidoDetailPage({ params }: Props) {
         </Card>
         <Card>
           <CardContent className="pt-6">
-            <div className="text-sm text-muted-foreground">
-              {profit !== null ? "Ganancia" : "Costo"}
-            </div>
-            <div className={`text-2xl font-bold ${profit !== null ? (profit >= 0 ? "text-green-600" : "text-red-600") : ""}`}>
-              {profit !== null ? formatCurrency(profit) : formatCurrency(totalCost)}
+            <div className="text-sm text-muted-foreground">Costo Total</div>
+            <div className="text-2xl font-bold">{formatCurrency(totalCost)}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="text-sm text-muted-foreground">Ganancia</div>
+            <div className={`text-2xl font-bold ${profit !== null ? (profit >= 0 ? "text-green-600" : "text-red-600") : "text-muted-foreground"}`}>
+              {profit !== null ? formatCurrency(profit) : "—"}
             </div>
           </CardContent>
         </Card>

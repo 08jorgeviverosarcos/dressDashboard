@@ -11,8 +11,8 @@ import { Bar, BarChart, XAxis, YAxis, CartesianGrid } from "recharts";
 import { ORDER_STATUS_LABELS } from "@/lib/constants/categories";
 
 const revenueExpenseConfig: ChartConfig = {
-  revenue: { label: "Ingresos", color: "hsl(var(--chart-1))" },
-  expenses: { label: "Gastos", color: "hsl(var(--chart-2))" },
+  revenue: { label: "Ingresos", color: "#16a34a" },
+  expenses: { label: "Gastos", color: "#dc2626" },
 };
 
 const statusConfig: ChartConfig = {
@@ -22,9 +22,10 @@ const statusConfig: ChartConfig = {
 interface DashboardChartsProps {
   monthlyData: { month: string; revenue: number; expenses: number }[];
   ordersByStatus: { status: string; count: number }[];
+  showFinancial?: boolean;
 }
 
-export function DashboardCharts({ monthlyData, ordersByStatus }: DashboardChartsProps) {
+export function DashboardCharts({ monthlyData, ordersByStatus, showFinancial = true }: DashboardChartsProps) {
   const statusData = ordersByStatus.map((item) => ({
     status: ORDER_STATUS_LABELS[item.status] ?? item.status,
     count: item.count,
@@ -32,23 +33,25 @@ export function DashboardCharts({ monthlyData, ordersByStatus }: DashboardCharts
 
   return (
     <div className="grid gap-6 md:grid-cols-2">
-      <Card>
-        <CardHeader>
-          <CardTitle>Ingresos vs Gastos (últimos 6 meses)</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ChartContainer config={revenueExpenseConfig} className="h-[300px] w-full">
-            <BarChart data={monthlyData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="month" fontSize={12} />
-              <YAxis fontSize={12} tickFormatter={(v) => `${(v / 1000000).toFixed(1)}M`} />
-              <ChartTooltip content={<ChartTooltipContent />} />
-              <Bar dataKey="revenue" fill="var(--color-revenue)" radius={[4, 4, 0, 0]} />
-              <Bar dataKey="expenses" fill="var(--color-expenses)" radius={[4, 4, 0, 0]} />
-            </BarChart>
-          </ChartContainer>
-        </CardContent>
-      </Card>
+      {showFinancial && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Ingresos vs Gastos (últimos 6 meses)</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ChartContainer config={revenueExpenseConfig} className="h-[300px] w-full">
+              <BarChart data={monthlyData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="month" fontSize={12} />
+                <YAxis fontSize={12} tickFormatter={(v) => `${(v / 1000000).toFixed(1)}M`} />
+                <ChartTooltip content={<ChartTooltipContent />} />
+                <Bar dataKey="revenue" fill="var(--color-revenue)" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="expenses" fill="var(--color-expenses)" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ChartContainer>
+          </CardContent>
+        </Card>
+      )}
 
       <Card>
         <CardHeader>

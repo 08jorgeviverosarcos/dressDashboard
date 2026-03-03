@@ -115,7 +115,7 @@ export function OrderItemsTable({ items, orderId }: OrderItemsTableProps) {
     {
       key: "costo",
       header: "Costo",
-      className: "text-right hidden md:table-cell",
+      className: "text-right",
       cell: (row) => formatCurrency(row.costAmount),
     },
     {
