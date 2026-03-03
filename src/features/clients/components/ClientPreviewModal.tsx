@@ -21,17 +21,22 @@ interface ClientPreviewModalProps {
 
 export function ClientPreviewModal({ clientId, onClose }: ClientPreviewModalProps) {
   const [client, setClient] = useState<Awaited<ReturnType<typeof getClient>> | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loadedId, setLoadedId] = useState<string | null>(null);
+  const loading = !!clientId && loadedId !== clientId;
 
   useEffect(() => {
-    if (clientId) {
-      setLoading(true);
-      setClient(null);
-      getClient(clientId).then((data) => {
-        setClient(data);
-        setLoading(false);
-      });
-    }
+    if (!clientId) return;
+
+    let cancelled = false;
+    getClient(clientId).then((data) => {
+      if (cancelled) return;
+      setClient(data);
+      setLoadedId(clientId);
+    });
+
+    return () => {
+      cancelled = true;
+    };
   }, [clientId]);
 
   return (

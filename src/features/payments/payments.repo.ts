@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import type { OrderStatus, PaymentMethod, PaymentType } from "@prisma/client";
+import type { PaymentMethod, PaymentType } from "@prisma/client";
 
 export function findAll(filters?: {
   orderId?: string;
@@ -50,33 +50,6 @@ export function createPayment(data: {
   notes: string | null;
 }) {
   return prisma.payment.create({ data });
-}
-
-export function updateOrderStatusAndCreateAuditLog(
-  orderId: string,
-  newStatus: OrderStatus,
-  oldStatus: OrderStatus,
-  paymentId: string,
-  amount: number
-) {
-  return prisma.$transaction([
-    prisma.order.update({
-      where: { id: orderId },
-      data: { status: newStatus },
-    }),
-    prisma.auditLog.create({
-      data: {
-        entity: "Order",
-        entityId: orderId,
-        action: "STATUS_CHANGE",
-        oldValue: oldStatus,
-        newValue: newStatus,
-        orderId: orderId,
-        paymentId: paymentId,
-        metadata: { trigger: "payment", amount: amount },
-      },
-    }),
-  ]);
 }
 
 export function createPaymentAuditLog(

@@ -4,6 +4,7 @@ import { calculatePaidAmount } from "@/lib/business/profit";
 import { deriveStatusAfterPayment } from "@/lib/business/status";
 import { toDecimalNumber } from "@/lib/utils";
 import * as repo from "./payments.repo";
+import * as ordersService from "@/features/orders/orders.service";
 
 export function getPayments(filters?: {
   orderId?: string;
@@ -57,13 +58,10 @@ export async function createPayment(
   );
 
   if (newStatus !== order.status) {
-    await repo.updateOrderStatusAndCreateAuditLog(
-      order.id,
-      newStatus,
-      order.status,
-      payment.id,
-      parsed.amount
-    );
+    const statusResult = await ordersService.updateOrderStatus(order.id, newStatus);
+    if (!statusResult.success) {
+      return { success: false, error: statusResult.error };
+    }
   }
 
   await repo.createPaymentAuditLog(

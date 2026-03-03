@@ -26,17 +26,22 @@ interface ProductPreviewModalProps {
 
 export function ProductPreviewModal({ productId, onClose }: ProductPreviewModalProps) {
   const [product, setProduct] = useState<Awaited<ReturnType<typeof getProduct>> | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loadedId, setLoadedId] = useState<string | null>(null);
+  const loading = !!productId && loadedId !== productId;
 
   useEffect(() => {
-    if (productId) {
-      setLoading(true);
-      setProduct(null);
-      getProduct(productId).then((data) => {
-        setProduct(data);
-        setLoading(false);
-      });
-    }
+    if (!productId) return;
+
+    let cancelled = false;
+    getProduct(productId).then((data) => {
+      if (cancelled) return;
+      setProduct(data);
+      setLoadedId(productId);
+    });
+
+    return () => {
+      cancelled = true;
+    };
   }, [productId]);
 
   return (

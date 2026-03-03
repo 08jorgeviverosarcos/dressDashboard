@@ -77,8 +77,12 @@ export async function updateOrderStatus(
 
   const needsDecrement = order.status === "QUOTE" && newStatus === "CONFIRMED";
   const needsRestore = order.status !== "QUOTE" && newStatus === "CANCELLED";
+  const needsReserveUnit = order.status === "QUOTE" && newStatus === "CONFIRMED";
+  const needsReleaseUnit = order.status !== "QUOTE" && newStatus === "CANCELLED";
 
   const stockAdjustments: Array<{ inventoryItemId: string; delta: number }> = [];
+  const unitStatusUpdates: Array<{ inventoryItemId: string; status: "RESERVED" | "AVAILABLE" }> =
+    [];
 
   if (needsDecrement || needsRestore) {
     const items = await repo.findOrderItemsForStockAdjustment(id);
@@ -90,7 +94,27 @@ export async function updateOrderStatus(
     }
   }
 
-  await repo.updateStatusInTransaction(id, newStatus, order.status, stockAdjustments);
+  if (needsReserveUnit || needsReleaseUnit) {
+    const unitItems = await repo.findUnitInventoryItemsForStatusAdjustment(id);
+    const seen = new Set<string>();
+
+    for (const item of unitItems) {
+      if (!item.inventoryItemId || seen.has(item.inventoryItemId)) continue;
+      seen.add(item.inventoryItemId);
+      unitStatusUpdates.push({
+        inventoryItemId: item.inventoryItemId,
+        status: needsReserveUnit ? "RESERVED" : "AVAILABLE",
+      });
+    }
+  }
+
+  await repo.updateStatusInTransaction(
+    id,
+    newStatus,
+    order.status,
+    stockAdjustments,
+    unitStatusUpdates
+  );
 
   return { success: true, data: undefined };
 }

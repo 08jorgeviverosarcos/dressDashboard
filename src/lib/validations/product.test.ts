@@ -5,6 +5,7 @@ const validProduct = {
   code: "VES-001",
   name: "Vestido Rojo",
   type: "SALE" as const,
+  inventoryTracking: "QUANTITY" as const,
 };
 
 describe("productSchema", () => {

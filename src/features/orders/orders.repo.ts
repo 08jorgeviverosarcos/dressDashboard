@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import type { OrderStatus } from "@prisma/client";
+import type { InventoryStatus, OrderStatus } from "@prisma/client";
 import type { OrderItemFormData } from "@/lib/validations/order";
 
 type OrderData = {
@@ -269,11 +269,25 @@ export function findOrderItemsForStockAdjustment(orderId: string) {
   });
 }
 
+export function findUnitInventoryItemsForStatusAdjustment(orderId: string) {
+  return prisma.orderItem.findMany({
+    where: {
+      orderId,
+      deletedAt: null,
+      inventoryItemId: { not: null },
+      product: { inventoryTracking: "UNIT" },
+      inventoryItem: { is: { deletedAt: null } },
+    },
+    select: { inventoryItemId: true },
+  });
+}
+
 export function updateStatusInTransaction(
   id: string,
   newStatus: OrderStatus,
   oldStatus: OrderStatus,
-  stockAdjustments: Array<{ inventoryItemId: string; delta: number }>
+  stockAdjustments: Array<{ inventoryItemId: string; delta: number }>,
+  unitStatusUpdates: Array<{ inventoryItemId: string; status: InventoryStatus }>
 ) {
   return prisma.$transaction(async (tx) => {
     await tx.order.update({
@@ -295,6 +309,20 @@ export function updateStatusInTransaction(
         where: { id: adj.inventoryItemId },
         data: { quantityOnHand: { increment: adj.delta } },
       });
+    }
+
+    for (const update of unitStatusUpdates) {
+      if (update.status === "RESERVED") {
+        await tx.inventoryItem.updateMany({
+          where: { id: update.inventoryItemId, deletedAt: null, status: "AVAILABLE" },
+          data: { status: "RESERVED" },
+        });
+      } else {
+        await tx.inventoryItem.updateMany({
+          where: { id: update.inventoryItemId, deletedAt: null },
+          data: { status: "AVAILABLE" },
+        });
+      }
     }
   });
 }

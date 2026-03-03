@@ -20,17 +20,22 @@ interface CategoryPreviewModalProps {
 
 export function CategoryPreviewModal({ categoryId, onClose }: CategoryPreviewModalProps) {
   const [category, setCategory] = useState<Awaited<ReturnType<typeof getCategory>> | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loadedId, setLoadedId] = useState<string | null>(null);
+  const loading = !!categoryId && loadedId !== categoryId;
 
   useEffect(() => {
-    if (categoryId) {
-      setLoading(true);
-      setCategory(null);
-      getCategory(categoryId).then((data) => {
-        setCategory(data);
-        setLoading(false);
-      });
-    }
+    if (!categoryId) return;
+
+    let cancelled = false;
+    getCategory(categoryId).then((data) => {
+      if (cancelled) return;
+      setCategory(data);
+      setLoadedId(categoryId);
+    });
+
+    return () => {
+      cancelled = true;
+    };
   }, [categoryId]);
 
   return (

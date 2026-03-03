@@ -104,6 +104,7 @@ export const INVENTORY_TRACKING_LABELS: Record<string, string> = {
 
 export const INVENTORY_STATUS_LABELS: Record<string, string> = {
   AVAILABLE: "Disponible",
+  RESERVED: "Reservado",
   RENTED: "Alquilado",
   SOLD: "Vendido",
   IN_REPAIR: "En reparación",

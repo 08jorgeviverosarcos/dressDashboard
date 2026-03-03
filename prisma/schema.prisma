@@ -266,6 +266,7 @@ enum ProductType {
 
 enum InventoryStatus {
   AVAILABLE
+  RESERVED
   RENTED
   SOLD
   IN_REPAIR
