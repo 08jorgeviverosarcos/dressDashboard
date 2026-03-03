@@ -1,5 +1,4 @@
 import type { ActionResult } from "@/types";
-import type { RentalCostFormData } from "@/lib/validations/rental";
 import * as repo from "./rentals.repo";
 
 export function getRental(orderItemId: string) {
@@ -60,46 +59,4 @@ export async function updateRental(
 
   await repo.update(id, data);
   return { success: true, orderId };
-}
-
-type AddRentalCostResult =
-  | { success: true; costId: string; orderId: string }
-  | { success: false; error: string };
-
-export async function addRentalCost(
-  parsed: RentalCostFormData
-): Promise<AddRentalCostResult> {
-  const rental = await repo.findRentalByIdSimple(parsed.rentalId);
-  if (!rental) {
-    return { success: false, error: "Alquiler no encontrado" };
-  }
-  if (!rental.orderItem?.orderId) {
-    return { success: false, error: "Pedido no encontrado" };
-  }
-
-  const cost = await repo.createCost({
-    rentalId: parsed.rentalId,
-    type: parsed.type,
-    amount: parsed.amount,
-    description: parsed.description || null,
-  });
-
-  return { success: true, costId: cost.id, orderId: rental.orderItem.orderId };
-}
-
-type DeleteRentalCostResult =
-  | { success: true; orderId: string }
-  | { success: false; error: string };
-
-export async function deleteRentalCost(id: string): Promise<DeleteRentalCostResult> {
-  const cost = await repo.findCostById(id);
-  if (!cost) {
-    return { success: false, error: "Costo no encontrado" };
-  }
-  if (!cost.rental.orderItem?.orderId) {
-    return { success: false, error: "Pedido no encontrado" };
-  }
-
-  await repo.deleteCost(id);
-  return { success: true, orderId: cost.rental.orderItem.orderId };
 }

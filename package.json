@@ -10,12 +10,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "db:migrate": "npx prisma migrate dev",
-    "db:seed": "npx prisma db seed",
     "db:studio": "npx prisma studio",
     "db:reset": "npx prisma migrate reset"
-  },
-  "prisma": {
-    "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",

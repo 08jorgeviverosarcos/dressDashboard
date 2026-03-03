@@ -7,25 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { MoneyInput } from "@/components/shared/MoneyInput";
 import { Label } from "@/components/ui/label";
-import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@/components/ui/select";
-import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
-} from "@/components/ui/dialog";
-import { Separator } from "@/components/ui/separator";
-import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
-import { createRental, updateRental, addRentalCost, deleteRentalCost } from "@/lib/actions/rentals";
-import { RENTAL_COST_TYPES } from "@/lib/constants/categories";
+import { createRental, updateRental } from "@/lib/actions/rentals";
 import { formatCurrency, toDecimalNumber } from "@/lib/utils";
-import { Plus, Trash2 } from "lucide-react";
-
-interface RentalCost {
-  id: string;
-  type: string;
-  amount: number | string;
-  description: string | null;
-}
 
 interface RentalData {
   id: string;
@@ -33,7 +16,6 @@ interface RentalData {
   returnDate: string | null;
   actualReturnDate: string | null;
   deposit: number | string;
-  costs: RentalCost[];
 }
 
 interface RentalManagerProps {
@@ -44,20 +26,11 @@ interface RentalManagerProps {
 
 export function RentalManager({ orderId, orderItemId, rental }: RentalManagerProps) {
   const [loading, setLoading] = useState(false);
-  const [costDialogOpen, setCostDialogOpen] = useState(false);
-  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
-
-  // Cost form state
-  const [costType, setCostType] = useState(RENTAL_COST_TYPES[0]);
-  const [costAmount, setCostAmount] = useState(0);
-  const [costDescription, setCostDescription] = useState("");
 
   // Rental dates state
   const [returnDate, setReturnDate] = useState(rental?.returnDate?.split("T")[0] ?? "");
   const [actualReturnDate, setActualReturnDate] = useState(rental?.actualReturnDate?.split("T")[0] ?? "");
   const [deposit, setDeposit] = useState(toDecimalNumber(rental?.deposit));
-
-  const totalCosts = rental?.costs.reduce((sum, c) => sum + toDecimalNumber(c.amount), 0) ?? 0;
 
   async function handleCreateRental() {
     if (!orderItemId) {
@@ -95,40 +68,6 @@ export function RentalManager({ orderId, orderItemId, rental }: RentalManagerPro
     }
   }
 
-  async function handleAddCost() {
-    if (!rental) return;
-    setLoading(true);
-    const result = await addRentalCost({
-      rentalId: rental.id,
-      type: costType,
-      amount: costAmount,
-      description: costDescription || undefined,
-    });
-    setLoading(false);
-    if (result.success) {
-      toast.success("Costo agregado");
-      setCostDialogOpen(false);
-      setCostAmount(0);
-      setCostDescription("");
-    } else {
-      toast.error(result.error);
-    }
-  }
-
-  async function handleDeleteCost() {
-    if (!deleteTarget) return;
-    setLoading(true);
-    const result = await deleteRentalCost(deleteTarget);
-    setLoading(false);
-    if (result.success) {
-      toast.success("Costo eliminado");
-      setDeleteTarget(null);
-    } else {
-      toast.error(result.error);
-      setDeleteTarget(null);
-    }
-  }
-
   if (!rental) {
     return (
       <Card>
@@ -158,21 +97,12 @@ export function RentalManager({ orderId, orderItemId, rental }: RentalManagerPro
 
   return (
     <div className="space-y-6">
-      {/* Summary Cards */}
-      <div className="grid gap-4 md:grid-cols-2">
-        <Card>
-          <CardContent className="pt-6">
-            <div className="text-sm text-muted-foreground">Depósito</div>
-            <div className="text-2xl font-bold">{formatCurrency(rental.deposit)}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-6">
-            <div className="text-sm text-muted-foreground">Total Costos</div>
-            <div className="text-2xl font-bold text-orange-600">{formatCurrency(totalCosts)}</div>
-          </CardContent>
-        </Card>
-      </div>
+      <Card>
+        <CardContent className="pt-6">
+          <div className="text-sm text-muted-foreground">Depósito</div>
+          <div className="text-2xl font-bold">{formatCurrency(rental.deposit)}</div>
+        </CardContent>
+      </Card>
 
       {/* Dates */}
       <Card>
@@ -200,93 +130,6 @@ export function RentalManager({ orderId, orderItemId, rental }: RentalManagerPro
         </CardContent>
       </Card>
 
-      {/* Costs */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle>Costos del Alquiler ({rental.costs.length})</CardTitle>
-            <Button size="sm" onClick={() => setCostDialogOpen(true)}>
-              <Plus className="mr-2 h-4 w-4" />
-              Agregar Costo
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {rental.costs.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Sin costos registrados</p>
-          ) : (
-            <div className="space-y-2">
-              {rental.costs.map((cost) => (
-                <div key={cost.id} className="flex items-center justify-between rounded-lg border p-3">
-                  <div>
-                    <span className="font-medium">{cost.type}</span>
-                    {cost.description && (
-                      <span className="text-sm text-muted-foreground ml-2">— {cost.description}</span>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className="font-medium">{formatCurrency(cost.amount)}</span>
-                    <Button variant="ghost" size="icon" onClick={() => setDeleteTarget(cost.id)}>
-                      <Trash2 className="h-4 w-4 text-destructive" />
-                    </Button>
-                  </div>
-                </div>
-              ))}
-              <Separator />
-              <div className="flex justify-end font-bold">
-                Total: {formatCurrency(totalCosts)}
-              </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Add Cost Dialog */}
-      <Dialog open={costDialogOpen} onOpenChange={setCostDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Agregar Costo de Alquiler</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label>Tipo *</Label>
-              <Select value={costType} onValueChange={setCostType}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {RENTAL_COST_TYPES.map((type) => (
-                    <SelectItem key={type} value={type}>{type}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>Monto *</Label>
-              <MoneyInput value={costAmount} onValueChange={(value) => setCostAmount(value ?? 0)} />
-            </div>
-            <div className="space-y-2">
-              <Label>Descripción</Label>
-              <Input value={costDescription} onChange={(e) => setCostDescription(e.target.value)} placeholder="Descripción opcional" />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setCostDialogOpen(false)}>Cancelar</Button>
-            <Button onClick={handleAddCost} disabled={loading || costAmount <= 0}>
-              {loading ? "Guardando..." : "Agregar"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      <ConfirmDialog
-        open={!!deleteTarget}
-        onOpenChange={(open) => !open && setDeleteTarget(null)}
-        title="Eliminar costo"
-        description="¿Estás seguro de eliminar este costo?"
-        confirmLabel="Eliminar"
-        variant="destructive"
-        onConfirm={handleDeleteCost}
-        loading={loading}
-      />
     </div>
   );
 }

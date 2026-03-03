@@ -12,7 +12,6 @@ const SOFT_DELETE_MODELS = new Set([
   "Payment",
   "Expense",
   "Rental",
-  "RentalCost",
   "User",
 ]);
 

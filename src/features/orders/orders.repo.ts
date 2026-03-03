@@ -49,7 +49,7 @@ export function findById(id: string) {
           product: true,
           inventoryItem: true,
           expenses: { where: { deletedAt: null }, orderBy: { date: "desc" } },
-          rental: { include: { costs: { where: { deletedAt: null } } } },
+          rental: true,
         },
       },
       payments: { where: { deletedAt: null }, orderBy: { paymentDate: "asc" } },
@@ -319,15 +319,7 @@ export function deleteWithCascade(id: string) {
     });
     const rentalIds = rentals.map((r) => r.id);
 
-    // 4. Soft-delete rentalCosts
-    if (rentalIds.length > 0) {
-      await tx.rentalCost.updateMany({
-        where: { rentalId: { in: rentalIds } },
-        data: { deletedAt: new Date() },
-      });
-    }
-
-    // 5. Soft-delete rentals
+    // 4. Soft-delete rentals
     if (rentalIds.length > 0) {
       await tx.rental.updateMany({
         where: { id: { in: rentalIds } },
@@ -335,10 +327,10 @@ export function deleteWithCascade(id: string) {
       });
     }
 
-    // 6. Soft-delete payments
+    // 5. Soft-delete payments
     await tx.payment.updateMany({ where: { orderId: id }, data: { deletedAt: new Date() } });
 
-    // 7. Soft-delete orderItems
+    // 6. Soft-delete orderItems
     if (orderItemIds.length > 0) {
       await tx.orderItem.updateMany({
         where: { id: { in: orderItemIds } },
@@ -346,7 +338,7 @@ export function deleteWithCascade(id: string) {
       });
     }
 
-    // 8. Soft-delete the order
+    // 7. Soft-delete the order
     await tx.order.update({ where: { id }, data: { deletedAt: new Date() } });
   });
 }
@@ -358,7 +350,7 @@ export function findOrderItemById(id: string) {
       product: true,
       inventoryItem: true,
       expenses: { where: { deletedAt: null }, orderBy: { date: "desc" } },
-      rental: { include: { costs: { where: { deletedAt: null }, orderBy: { type: "asc" } } } },
+      rental: true,
       order: {
         select: {
           id: true,
@@ -449,11 +441,6 @@ export function deleteOrderItemAndUpdateTotals(
     });
 
     if (rentalId) {
-      // Soft-delete rentalCosts for this rental
-      await tx.rentalCost.updateMany({
-        where: { rentalId },
-        data: { deletedAt: new Date() },
-      });
       // Soft-delete the rental
       await tx.rental.update({ where: { id: rentalId }, data: { deletedAt: new Date() } });
     }

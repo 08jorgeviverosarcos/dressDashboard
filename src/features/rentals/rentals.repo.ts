@@ -4,7 +4,6 @@ export function findByOrderItemId(orderItemId: string) {
   return prisma.rental.findFirst({
     where: { orderItemId },
     include: {
-      costs: { where: { deletedAt: null }, orderBy: { type: "asc" } },
       orderItem: {
         include: {
           product: true,
@@ -78,24 +77,4 @@ export function findRentalByIdSimple(rentalId: string) {
     where: { id: rentalId },
     include: { orderItem: { include: { order: true } } },
   });
-}
-
-export function createCost(data: {
-  rentalId: string;
-  type: string;
-  amount: number;
-  description: string | null;
-}) {
-  return prisma.rentalCost.create({ data });
-}
-
-export function findCostById(id: string) {
-  return prisma.rentalCost.findFirst({
-    where: { id },
-    include: { rental: { include: { orderItem: { include: { order: true } } } } },
-  });
-}
-
-export function deleteCost(id: string) {
-  return prisma.rentalCost.update({ where: { id }, data: { deletedAt: new Date() } });
 }

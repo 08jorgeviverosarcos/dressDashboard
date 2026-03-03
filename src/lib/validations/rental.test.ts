@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { rentalSchema, rentalCostSchema } from "./rental";
+import { rentalSchema } from "./rental";
 
 describe("rentalSchema", () => {
   it("accepts valid minimal data", () => {
@@ -33,38 +33,5 @@ describe("rentalSchema", () => {
   it("rejects negative deposit", () => {
     const result = rentalSchema.safeParse({ orderItemId: "clx123", deposit: -100 });
     expect(result.success).toBe(false);
-  });
-});
-
-describe("rentalCostSchema", () => {
-  const validCost = {
-    rentalId: "clx456",
-    type: "Lavado",
-    amount: 50000,
-  };
-
-  it("accepts valid data", () => {
-    const result = rentalCostSchema.safeParse(validCost);
-    expect(result.success).toBe(true);
-  });
-
-  it("rejects zero amount", () => {
-    const result = rentalCostSchema.safeParse({ ...validCost, amount: 0 });
-    expect(result.success).toBe(false);
-  });
-
-  it("rejects empty rentalId", () => {
-    const result = rentalCostSchema.safeParse({ ...validCost, rentalId: "" });
-    expect(result.success).toBe(false);
-  });
-
-  it("rejects empty type", () => {
-    const result = rentalCostSchema.safeParse({ ...validCost, type: "" });
-    expect(result.success).toBe(false);
-  });
-
-  it("accepts optional description as empty string", () => {
-    const result = rentalCostSchema.safeParse({ ...validCost, description: "" });
-    expect(result.success).toBe(true);
   });
 });

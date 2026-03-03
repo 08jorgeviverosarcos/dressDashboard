@@ -1,6 +1,5 @@
 "use server";
 
-import { rentalCostSchema, type RentalCostFormData } from "@/lib/validations/rental";
 import { revalidatePath } from "next/cache";
 import type { ActionResult } from "@/types";
 import * as service from "@/features/rentals/rentals.service";
@@ -32,29 +31,6 @@ export async function updateRental(
   if (internal.success) {
     revalidatePath(`/pedidos/${internal.orderId}`);
     revalidatePath("/inventario");
-    return { success: true, data: undefined };
-  }
-  return { success: false, error: internal.error };
-}
-
-export async function addRentalCost(data: RentalCostFormData): Promise<ActionResult<{ id: string }>> {
-  const parsed = rentalCostSchema.safeParse(data);
-  if (!parsed.success) {
-    return { success: false, error: parsed.error.issues[0].message };
-  }
-
-  const internal = await service.addRentalCost(parsed.data);
-  if (internal.success) {
-    revalidatePath(`/pedidos/${internal.orderId}`);
-    return { success: true, data: { id: internal.costId } };
-  }
-  return { success: false, error: internal.error };
-}
-
-export async function deleteRentalCost(id: string): Promise<ActionResult> {
-  const internal = await service.deleteRentalCost(id);
-  if (internal.success) {
-    revalidatePath(`/pedidos/${internal.orderId}`);
     return { success: true, data: undefined };
   }
   return { success: false, error: internal.error };
