@@ -23,8 +23,6 @@ export default async function ProductosPage({ searchParams }: ProductosPageProps
       <PageHeader
         title="Productos"
         description="Gestiona el catálogo de productos"
-        actionLabel="Nuevo Producto"
-        actionHref="/productos/nuevo"
       />
 
       <ProductsTable

@@ -38,9 +38,10 @@ const adminNavItems = [
 
 type SidebarProps = {
   userRole: "ADMIN" | "SALES";
+  userName: string;
 };
 
-export function Sidebar({ userRole }: SidebarProps) {
+export function Sidebar({ userRole, userName }: SidebarProps) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -82,6 +83,10 @@ export function Sidebar({ userRole }: SidebarProps) {
         })}
       </nav>
       <div className="mt-auto border-t p-4">
+        <div className="mb-3 px-3">
+          <p className="text-xs text-muted-foreground">Usuario actual</p>
+          <p className="truncate text-sm font-medium">{userName}</p>
+        </div>
         <form action={logout}>
           <button
             type="submit"
