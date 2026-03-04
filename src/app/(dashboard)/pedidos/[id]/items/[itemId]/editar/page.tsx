@@ -4,6 +4,7 @@ import { getProducts } from "@/lib/actions/products";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { toDecimalNumber } from "@/lib/utils";
 import { OrderItemEditForm } from "./order-item-edit-form";
+import type { ProductOptionSource } from "@/types";
 
 interface Props {
   params: Promise<{ id: string; itemId: string }>;
@@ -29,7 +30,7 @@ export default async function EditarOrderItemPage({ params }: Props) {
       <OrderItemEditForm
         orderItemId={itemId}
         orderId={id}
-        products={products.map((p) => ({
+        products={products.map((p: ProductOptionSource) => ({
           id: p.id,
           code: p.code,
           name: p.name,

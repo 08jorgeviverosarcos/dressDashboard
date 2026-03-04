@@ -6,6 +6,12 @@ import { getAvailableUnitInventoryItems } from "@/lib/actions/inventory";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { OrderForm } from "@/components/orders/OrderForm";
 import { toDecimalNumber } from "@/lib/utils";
+import type {
+  ClientOptionSource,
+  EditableOrderItemSource,
+  InventoryItemOptionSource,
+  ProductOptionSource,
+} from "@/types";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -26,8 +32,8 @@ export default async function EditarPedidoPage({ params }: Props) {
     <div className="space-y-6">
       <PageHeader title={`Editar Pedido #${order.orderNumber}`} backHref={`/pedidos/${id}`} />
       <OrderForm
-        clients={clients.map((c) => ({ id: c.id, name: c.name }))}
-        products={products.map((p) => ({
+        clients={clients.map((c: ClientOptionSource) => ({ id: c.id, name: c.name }))}
+        products={products.map((p: ProductOptionSource) => ({
           id: p.id,
           code: p.code,
           name: p.name,
@@ -38,7 +44,7 @@ export default async function EditarPedidoPage({ params }: Props) {
           cost: p.cost ? Number(p.cost) : null,
           description: p.description ?? null,
         }))}
-        inventoryItems={inventoryItems.map((ii) => ({
+        inventoryItems={inventoryItems.map((ii: InventoryItemOptionSource) => ({
           id: ii.id,
           assetCode: ii.assetCode,
           productId: ii.productId,
@@ -55,7 +61,7 @@ export default async function EditarPedidoPage({ params }: Props) {
           adjustmentReason: order.adjustmentReason ?? "",
           minDownpaymentPct: toDecimalNumber(order.minDownpaymentPct),
           notes: order.notes ?? "",
-          items: order.items.map((i) => ({
+          items: order.items.map((i: EditableOrderItemSource) => ({
             id: i.id,
             itemType: i.itemType,
             productId: i.productId ?? "",

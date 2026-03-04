@@ -3,6 +3,11 @@ import { getProducts } from "@/lib/actions/products";
 import { getAvailableUnitInventoryItems } from "@/lib/actions/inventory";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { OrderForm } from "@/components/orders/OrderForm";
+import type {
+  ClientOptionSource,
+  InventoryItemOptionSource,
+  ProductOptionSource,
+} from "@/types";
 
 export default async function NuevoPedidoPage() {
   const [clients, products, inventoryItems] = await Promise.all([
@@ -15,8 +20,8 @@ export default async function NuevoPedidoPage() {
     <div className="space-y-6">
       <PageHeader title="Nuevo Pedido" backHref="/pedidos" />
       <OrderForm
-        clients={clients.map((c) => ({ id: c.id, name: c.name }))}
-        products={products.map((p) => ({
+        clients={clients.map((c: ClientOptionSource) => ({ id: c.id, name: c.name }))}
+        products={products.map((p: ProductOptionSource) => ({
           id: p.id,
           code: p.code,
           name: p.name,
@@ -27,7 +32,7 @@ export default async function NuevoPedidoPage() {
           cost: p.cost ? Number(p.cost) : null,
           description: p.description ?? null,
         }))}
-        inventoryItems={inventoryItems.map((ii) => ({
+        inventoryItems={inventoryItems.map((ii: InventoryItemOptionSource) => ({
           id: ii.id,
           assetCode: ii.assetCode,
           productId: ii.productId,

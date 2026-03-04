@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { PRODUCT_TYPE_LABELS } from "@/lib/constants/categories";
 import { Pencil } from "lucide-react";
+import type { CategoryProductListItem } from "@/types";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -67,7 +68,7 @@ export default async function CategoriaDetailPage({ params }: Props) {
                   </tr>
                 </thead>
                 <tbody>
-                  {category.products.map((product: { id: string; code: string; name: string; type: string }) => (
+                  {category.products.map((product: CategoryProductListItem) => (
                     <tr key={product.id} className="border-b hover:bg-muted/30">
                       <td className="p-3">
                         <Link href={`/productos/${product.id}`} className="text-primary hover:underline font-medium">

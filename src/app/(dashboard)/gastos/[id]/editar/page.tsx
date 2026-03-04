@@ -4,6 +4,7 @@ import { getOrders } from "@/lib/actions/orders";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { ExpenseForm } from "@/components/expenses/ExpenseForm";
 import { toDecimalNumber } from "@/lib/utils";
+import type { OrderExpenseItemSource, OrderExpenseSource } from "@/types";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -19,22 +20,12 @@ export default async function EditarGastoPage({ params }: Props) {
     <div className="space-y-6">
       <PageHeader title="Editar Gasto" backHref="/gastos" />
       <ExpenseForm
-        orders={orders.map((o: {
-          id: string;
-          orderNumber: number;
-          status: string;
-          client: { name: string } | null;
-          items: Array<{
-            id: string;
-            name: string | null;
-            product: { name: string; code: string } | null;
-          }>;
-        }) => ({
+        orders={orders.map((o: OrderExpenseSource) => ({
           id: o.id,
           orderNumber: o.orderNumber,
           status: o.status,
           clientName: o.client?.name ?? "",
-          items: o.items.map((i: { id: string; name: string | null; product: { name: string; code: string } | null }) => ({
+          items: o.items.map((i: OrderExpenseItemSource) => ({
             id: i.id,
             product: { name: (i.name || i.product?.name) ?? "", code: i.product?.code ?? "" },
           })),
