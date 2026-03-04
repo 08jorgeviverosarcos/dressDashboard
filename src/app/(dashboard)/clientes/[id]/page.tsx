@@ -14,6 +14,15 @@ interface Props {
   params: Promise<{ id: string }>;
 }
 
+interface ClientOrderRow {
+  id: string;
+  orderNumber: number;
+  orderDate: Date | string;
+  totalPrice: unknown;
+  status: string;
+  payments: { amount: unknown }[];
+}
+
 export default async function ClienteDetailPage({ params }: Props) {
   const { id } = await params;
   const client = await getClient(id);
@@ -83,7 +92,7 @@ export default async function ClienteDetailPage({ params }: Props) {
                   </tr>
                 </thead>
                 <tbody>
-                  {client.orders.map((order) => {
+                  {(client.orders as ClientOrderRow[]).map((order) => {
                     const paidPct = calculatePaidPercentage(
                       order.payments,
                       order.totalPrice

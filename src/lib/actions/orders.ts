@@ -6,6 +6,47 @@ import type { ActionResult } from "@/types";
 import type { OrderStatus } from "@prisma/client";
 import * as service from "@/features/orders/orders.service";
 
+// Pattern: translate expected persistence failures into ActionResult user messages.
+// This keeps UI flows stable and avoids uncaught exceptions in form submits.
+function mapCreateOrderPersistenceError(error: unknown): string {
+  const duplicateOrderNumberMessage =
+    "Ya existe un pedido con ese numero. Ingresa otro numero.";
+  const genericCreateOrderMessage =
+    "No se pudo crear el pedido. Intenta nuevamente.";
+
+  if (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    (error as { code?: unknown }).code === "P2002"
+  ) {
+    // Prisma P2002 may expose target as array, string, or omit it depending on runtime/adapter.
+    const target =
+      "meta" in error &&
+      typeof (error as { meta?: unknown }).meta === "object" &&
+      (error as { meta?: { target?: unknown } }).meta?.target;
+
+    if (Array.isArray(target) && target.some((value) => String(value).includes("orderNumber"))) {
+      return duplicateOrderNumberMessage;
+    }
+
+    if (typeof target === "string" && target.includes("orderNumber")) {
+      return duplicateOrderNumberMessage;
+    }
+
+    if ("message" in error && typeof (error as { message?: unknown }).message === "string") {
+      const message = (error as { message: string }).message;
+      if (message.includes("orderNumber") || message.includes("Order_orderNumber_key")) {
+        return duplicateOrderNumberMessage;
+      }
+    }
+
+    return duplicateOrderNumberMessage;
+  }
+
+  return genericCreateOrderMessage;
+}
+
 export async function getOrders(filters?: {
   search?: string;
   status?: OrderStatus;
@@ -23,9 +64,13 @@ export async function createOrder(data: OrderFormData): Promise<ActionResult<{ i
     return { success: false, error: parsed.error.issues[0].message };
   }
 
-  const result = await service.createOrder(parsed.data);
-  if (result.success) revalidatePath("/pedidos");
-  return result;
+  try {
+    const result = await service.createOrder(parsed.data);
+    if (result.success) revalidatePath("/pedidos");
+    return result;
+  } catch (error) {
+    return { success: false, error: mapCreateOrderPersistenceError(error) };
+  }
 }
 
 export async function updateOrder(id: string, data: OrderFormData): Promise<ActionResult> {

@@ -67,7 +67,7 @@ export default async function CategoriaDetailPage({ params }: Props) {
                   </tr>
                 </thead>
                 <tbody>
-                  {category.products.map((product) => (
+                  {category.products.map((product: { id: string; code: string; name: string; type: string }) => (
                     <tr key={product.id} className="border-b hover:bg-muted/30">
                       <td className="p-3">
                         <Link href={`/productos/${product.id}`} className="text-primary hover:underline font-medium">
