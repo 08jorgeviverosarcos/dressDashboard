@@ -209,21 +209,25 @@ export function OrderForm({ clients, products, inventoryItems, initialData }: Or
       })),
     };
 
-    const result = initialData
-      ? await updateOrder(initialData.id, data)
-      : await createOrder(data);
+    try {
+      const result = initialData
+        ? await updateOrder(initialData.id, data)
+        : await createOrder(data);
 
-    setSubmitting(false);
-
-    if (result.success) {
-      toast.success(initialData ? "Pedido actualizado" : "Pedido creado exitosamente");
-      if (initialData) {
-        router.push(`/pedidos/${initialData.id}`);
+      if (result.success) {
+        toast.success(initialData ? "Pedido actualizado" : "Pedido creado exitosamente");
+        if (initialData) {
+          router.push(`/pedidos/${initialData.id}`);
+        } else {
+          router.push("/pedidos");
+        }
       } else {
-        router.push("/pedidos");
+        toast.error(result.error);
       }
-    } else {
-      toast.error(result.error);
+    } catch {
+      toast.error("No se pudo guardar el pedido. Intenta nuevamente.");
+    } finally {
+      setSubmitting(false);
     }
   }
 
