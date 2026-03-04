@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "COP Dress Dashboard",
+  title: "J&A Diseñadoras de modas",
   description: "Sistema de gestión para alta costura COP",
 };
 

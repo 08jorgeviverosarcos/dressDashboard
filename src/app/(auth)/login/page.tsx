@@ -46,7 +46,7 @@ export default function LoginPage() {
     <div className="flex min-h-screen items-center justify-center p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl">COP Dress</CardTitle>
+          <CardTitle className="text-2xl">J&A Diseñadoras de modas</CardTitle>
           <CardDescription>Inicia sesión para continuar</CardDescription>
         </CardHeader>
         <CardContent>
