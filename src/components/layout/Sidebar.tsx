@@ -58,7 +58,7 @@ export function Sidebar({ userRole }: SidebarProps) {
     <div className="flex h-full flex-col">
       <nav className="flex flex-col gap-1 p-4">
         <div className="mb-6 px-3">
-          <h1 className="text-xl font-bold">COP Dress</h1>
+          <h1 className="text-xl font-bold">J&A Diseñadoras de modas</h1>
           <p className="text-xs text-muted-foreground">Dashboard</p>
         </div>
         {navItems.map((item) => {
