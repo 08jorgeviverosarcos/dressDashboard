@@ -33,6 +33,7 @@ export default function NuevoClientePage() {
     resolver: zodResolver(clientSchema),
     defaultValues: {
       name: "",
+      identification: "",
       phone: "",
       email: "",
       notes: "",
@@ -71,6 +72,20 @@ export default function NuevoClientePage() {
                     <FormLabel>Nombre *</FormLabel>
                     <FormControl>
                       <Input placeholder="Nombre completo" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="identification"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Identificación</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Cédula o documento" {...field} value={field.value ?? ""} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

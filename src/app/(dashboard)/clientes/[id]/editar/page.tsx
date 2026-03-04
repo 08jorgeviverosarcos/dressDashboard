@@ -30,7 +30,7 @@ export default function EditarClientePage() {
 
   const form = useForm<ClientFormData>({
     resolver: zodResolver(clientSchema),
-    defaultValues: { name: "", phone: "", email: "", notes: "" },
+    defaultValues: { name: "", identification: "", phone: "", email: "", notes: "" },
   });
 
   useEffect(() => {
@@ -38,6 +38,7 @@ export default function EditarClientePage() {
       if (client) {
         form.reset({
           name: client.name,
+          identification: client.identification ?? "",
           phone: client.phone ?? "",
           email: client.email ?? "",
           notes: client.notes ?? "",
@@ -83,6 +84,19 @@ export default function EditarClientePage() {
                     <FormLabel>Nombre *</FormLabel>
                     <FormControl>
                       <Input placeholder="Nombre completo" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="identification"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Identificación</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Cédula o documento" {...field} value={field.value ?? ""} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

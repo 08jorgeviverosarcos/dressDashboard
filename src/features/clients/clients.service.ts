@@ -15,6 +15,7 @@ export async function createClient(
 ): Promise<ActionResult<{ id: string }>> {
   const client = await repo.create({
     name: parsed.name,
+    identification: parsed.identification || null,
     phone: parsed.phone || null,
     email: parsed.email || null,
     notes: parsed.notes || null,
@@ -29,6 +30,7 @@ export async function updateClient(
 ): Promise<ActionResult> {
   await repo.update(id, {
     name: parsed.name,
+    identification: parsed.identification || null,
     phone: parsed.phone || null,
     email: parsed.email || null,
     notes: parsed.notes || null,

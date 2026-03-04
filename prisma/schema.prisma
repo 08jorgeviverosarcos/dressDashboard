@@ -9,6 +9,7 @@ datasource db {
 model Client {
   id        String    @id @default(cuid())
   name      String
+  identification String?
   phone     String?
   email     String?
   notes     String?
