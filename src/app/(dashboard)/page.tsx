@@ -10,6 +10,7 @@ import {
   ShoppingBag,
   BarChart3,
   Calendar,
+  Receipt,
 } from "lucide-react";
 import Link from "next/link";
 import { DashboardCharts } from "./dashboard-charts";
@@ -72,7 +73,7 @@ export default async function DashboardPage({ searchParams }: Props) {
       {isAdmin && <DashboardFilters />}
 
       {/* KPI Cards */}
-      <div className={`grid gap-4 ${isAdmin ? "md:grid-cols-5" : "md:grid-cols-1"}`}>
+      <div className={`grid gap-4 ${isAdmin ? "md:grid-cols-3" : "md:grid-cols-1"}`}>
         {isAdmin && (
           <>
             <Card>
@@ -116,17 +117,28 @@ export default async function DashboardPage({ searchParams }: Props) {
           </CardContent>
         </Card>
         {isAdmin && (
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <BarChart3 className="h-4 w-4" />
-                Ganancia (mes)
-              </div>
-              <div className={`text-2xl font-bold ${data.kpis.totalProfit >= 0 ? "text-green-600" : "text-red-600"}`}>
-                {formatCurrency(data.kpis.totalProfit)}
-              </div>
-            </CardContent>
-          </Card>
+          <>
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <BarChart3 className="h-4 w-4" />
+                  Ganancia (mes)
+                </div>
+                <div className={`text-2xl font-bold ${data.kpis.totalProfit >= 0 ? "text-green-600" : "text-red-600"}`}>
+                  {formatCurrency(data.kpis.totalProfit)}
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Receipt className="h-4 w-4" />
+                  Total Vendido
+                </div>
+                <div className="text-2xl font-bold">{formatCurrency(data.kpis.totalSold)}</div>
+              </CardContent>
+            </Card>
+          </>
         )}
       </div>
 
@@ -135,6 +147,8 @@ export default async function DashboardPage({ searchParams }: Props) {
         monthlyData={data.monthlyData}
         ordersByStatus={data.ordersByStatus}
         showFinancial={isAdmin}
+        salesMonthlyData={data.salesMonthlyData}
+        salesSummary={data.salesSummary}
       />
 
       <div className="grid gap-6 md:grid-cols-2">

@@ -1,6 +1,28 @@
 import { toDecimalNumber } from "@/lib/utils";
 import * as repo from "./dashboard.repo";
 
+async function _getSalesMonthlyTrends() {
+  const months: { month: string; sales: number }[] = [];
+  const now = new Date();
+
+  for (let i = 5; i >= 0; i--) {
+    const monthStart = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const monthEnd = new Date(now.getFullYear(), now.getMonth() - i + 1, 0, 23, 59, 59);
+
+    const monthLabel = monthStart.toLocaleDateString("es-CO", {
+      month: "short",
+      year: "numeric",
+    });
+
+    const orders = await repo.getOrdersWithPaymentsByDateRange(monthStart, monthEnd);
+    const sales = orders.reduce((s, o) => s + toDecimalNumber(o.totalPrice), 0);
+
+    months.push({ month: monthLabel, sales });
+  }
+
+  return months;
+}
+
 async function _getMonthlyTrends() {
   const months: { month: string; revenue: number; expenses: number }[] = [];
   const now = new Date();
@@ -44,6 +66,8 @@ export async function getDashboardData(startDate?: Date, endDate?: Date) {
     inventorySummary,
     ordersByStatus,
     monthlyData,
+    ordersWithPayments,
+    salesMonthlyData,
   ] = await Promise.all([
     repo.getPaymentsByDateRange(start, end),
     repo.getExpensesByDateRange(start, end),
@@ -54,6 +78,8 @@ export async function getDashboardData(startDate?: Date, endDate?: Date) {
     repo.getInventorySummary(),
     repo.getOrdersByStatus(),
     _getMonthlyTrends(),
+    repo.getOrdersWithPaymentsByDateRange(start, end),
+    _getSalesMonthlyTrends(),
   ]);
 
   const totalRevenue = paymentsThisMonth.reduce(
@@ -69,6 +95,16 @@ export async function getDashboardData(startDate?: Date, endDate?: Date) {
     0
   );
 
+  const totalSold = ordersWithPayments.reduce(
+    (sum, o) => sum + toDecimalNumber(o.totalPrice),
+    0
+  );
+  const totalPaidFromOrders = ordersWithPayments.reduce(
+    (sum, o) => sum + o.payments.reduce((ps, p) => ps + toDecimalNumber(p.amount), 0),
+    0
+  );
+  const totalPending = totalSold - totalPaidFromOrders;
+
   return {
     kpis: {
       totalRevenue,
@@ -76,6 +112,7 @@ export async function getDashboardData(startDate?: Date, endDate?: Date) {
       netCashFlow: totalRevenue - totalExpenses,
       pipelineOrders,
       totalProfit,
+      totalSold,
     },
     upcomingEvents,
     recentPayments,
@@ -88,6 +125,8 @@ export async function getDashboardData(startDate?: Date, endDate?: Date) {
       count: g._count.status,
     })),
     monthlyData,
+    salesSummary: { totalSold, totalPaid: totalPaidFromOrders, totalPending },
+    salesMonthlyData,
   };
 }
 
