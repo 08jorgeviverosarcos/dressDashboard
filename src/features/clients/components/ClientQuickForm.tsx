@@ -20,6 +20,7 @@ interface ClientQuickFormProps {
 
 export function ClientQuickForm({ onCreated, onCancel }: ClientQuickFormProps) {
   const [name, setName] = useState("");
+  const [identification, setIdentification] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
@@ -31,6 +32,7 @@ export function ClientQuickForm({ onCreated, onCancel }: ClientQuickFormProps) {
     setLoading(true);
     const result = await createClient({
       name: name.trim(),
+      identification: identification.trim(),
       phone: phone.trim(),
       email: email.trim(),
     });
@@ -54,6 +56,16 @@ export function ClientQuickForm({ onCreated, onCancel }: ClientQuickFormProps) {
             onChange={(e) => setName(e.target.value)}
             placeholder="Nombre del cliente"
             required
+            className="text-base md:text-sm"
+          />
+        </div>
+        <div className="space-y-2 sm:col-span-2">
+          <Label htmlFor="cl-identification">Identificación</Label>
+          <Input
+            id="cl-identification"
+            value={identification}
+            onChange={(e) => setIdentification(e.target.value)}
+            placeholder="Cédula o documento"
             className="text-base md:text-sm"
           />
         </div>

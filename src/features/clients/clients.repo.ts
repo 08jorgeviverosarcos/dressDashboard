@@ -5,6 +5,7 @@ export function findAll(search?: string) {
     ? {
         OR: [
           { name: { contains: search, mode: "insensitive" as const } },
+          { identification: { contains: search, mode: "insensitive" as const } },
           { phone: { contains: search, mode: "insensitive" as const } },
           { email: { contains: search, mode: "insensitive" as const } },
         ],
@@ -33,6 +34,7 @@ export function findById(id: string) {
 
 export function create(data: {
   name: string;
+  identification: string | null;
   phone: string | null;
   email: string | null;
   notes: string | null;
@@ -44,6 +46,7 @@ export function update(
   id: string,
   data: {
     name: string;
+    identification: string | null;
     phone: string | null;
     email: string | null;
     notes: string | null;

@@ -84,3 +84,19 @@ export async function getOrderItemRevenue(limit: number) {
 
   return { products, productDetails };
 }
+
+export function getOrdersWithPaymentsByDateRange(start: Date, end: Date) {
+  return prisma.order.findMany({
+    where: {
+      status: { in: ["CONFIRMED", "COMPLETED"] },
+      orderDate: { gte: start, lte: end },
+    },
+    select: {
+      totalPrice: true,
+      payments: {
+        where: { deletedAt: null },
+        select: { amount: true },
+      },
+    },
+  });
+}

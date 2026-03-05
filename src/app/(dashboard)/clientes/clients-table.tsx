@@ -13,6 +13,7 @@ import { Trash2 } from "lucide-react";
 interface ClientRow {
   id: string;
   name: string;
+  identification: string | null;
   phone: string | null;
   email: string | null;
   orders: { id: string }[];
@@ -45,6 +46,11 @@ export function ClientsTable({ clients }: ClientsTableProps) {
       key: "name",
       header: "Nombre",
       cell: (row) => <span className="font-medium">{row.name}</span>,
+    },
+    {
+      key: "identification",
+      header: "Identificación",
+      cell: (row) => row.identification || "—",
     },
     {
       key: "phone",
@@ -86,7 +92,7 @@ export function ClientsTable({ clients }: ClientsTableProps) {
   return (
     <>
       <div className="space-y-4">
-        <SearchInput placeholder="Buscar por nombre, teléfono o email..." />
+        <SearchInput placeholder="Buscar por nombre, identificación, teléfono o email..." />
         <DataTable
           columns={columns}
           data={clients}
