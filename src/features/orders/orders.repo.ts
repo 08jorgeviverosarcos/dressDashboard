@@ -100,16 +100,6 @@ export function create(orderData: OrderData, items: OrderItemFormData[]) {
   });
 }
 
-export function createAuditLog(data: {
-  entity: string;
-  entityId: string;
-  action: string;
-  newValue: string;
-  orderId: string;
-}) {
-  return prisma.auditLog.create({ data });
-}
-
 export function updateInTransaction(
   id: string,
   orderData: OrderData,
@@ -301,7 +291,8 @@ export function updateStatusInTransaction(
   newStatus: OrderStatus,
   oldStatus: OrderStatus,
   stockAdjustments: Array<{ inventoryItemId: string; delta: number }>,
-  unitStatusUpdates: Array<{ inventoryItemId: string; status: InventoryStatus }>
+  unitStatusUpdates: Array<{ inventoryItemId: string; status: InventoryStatus }>,
+  userId?: string
 ) {
   return prisma.$transaction(async (tx) => {
     await tx.order.update({
@@ -316,6 +307,7 @@ export function updateStatusInTransaction(
         oldValue: oldStatus,
         newValue: newStatus,
         orderId: id,
+        userId: userId ?? null,
       },
     });
     for (const adj of stockAdjustments) {

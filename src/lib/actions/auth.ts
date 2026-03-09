@@ -38,6 +38,7 @@ export async function login(data: {
     entity: "User",
     entityId: result.data.id,
     action: "LOGIN",
+    userId: result.data.id,
   });
 
   return { success: true, data: { name: result.data.name } };
@@ -50,6 +51,7 @@ export async function logout() {
       entity: "User",
       entityId: session.userId,
       action: "LOGOUT",
+      userId: session.userId,
     });
   }
   await deleteSession();
@@ -106,6 +108,7 @@ export async function createUser(data: {
       entity: "User",
       entityId: result.data.id,
       action: "CREATE",
+      userId: session.userId,
       newValue: JSON.stringify({
         email: parsed.data.email,
         name: parsed.data.name,
@@ -142,6 +145,7 @@ export async function updateUser(
       entity: "User",
       entityId: id,
       action: "UPDATE",
+      userId: session.userId,
       oldValue: userBeforeUpdate
         ? JSON.stringify({
             email: userBeforeUpdate.email,
@@ -182,6 +186,7 @@ export async function deleteUser(id: string): Promise<ActionResult> {
       entity: "User",
       entityId: id,
       action: "DELETE",
+      userId: session.userId,
       oldValue: JSON.stringify({
         email: userToDelete.email,
         name: userToDelete.name,

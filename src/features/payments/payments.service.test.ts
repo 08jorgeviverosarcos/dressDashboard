@@ -8,7 +8,6 @@ vi.mock("./payments.repo", () => ({
   findByIdWithOrder: vi.fn(),
   findOrderWithPayments: vi.fn(),
   createPayment: vi.fn(),
-  createPaymentAuditLog: vi.fn(),
   findById: vi.fn(),
   deleteById: vi.fn(),
 }));
@@ -35,7 +34,6 @@ describe("payments.service.createPayment", () => {
       success: true,
       data: undefined,
     });
-    vi.mocked(repo.createPaymentAuditLog).mockResolvedValue(undefined as never);
 
     const result = await createPayment({
       orderId: "o1",
@@ -48,14 +46,7 @@ describe("payments.service.createPayment", () => {
     });
 
     expect(result).toEqual({ success: true, data: { id: "p1" } });
-    expect(ordersService.updateOrderStatus).toHaveBeenCalledWith("o1", "CONFIRMED");
-    expect(repo.createPaymentAuditLog).toHaveBeenCalledWith(
-      "p1",
-      "o1",
-      "CASH",
-      "DOWNPAYMENT",
-      300
-    );
+    expect(ordersService.updateOrderStatus).toHaveBeenCalledWith("o1", "CONFIRMED", undefined);
   });
 
   it("propaga error si updateOrderStatus falla", async () => {
@@ -86,6 +77,5 @@ describe("payments.service.createPayment", () => {
       success: false,
       error: "No se puede cambiar de QUOTE a CONFIRMED",
     });
-    expect(repo.createPaymentAuditLog).not.toHaveBeenCalled();
   });
 });

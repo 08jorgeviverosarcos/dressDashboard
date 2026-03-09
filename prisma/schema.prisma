@@ -198,12 +198,15 @@ model AuditLog {
   metadata  Json?
   orderId   String?
   paymentId String?
+  userId    String?
   createdAt DateTime @default(now())
   order     Order?   @relation(fields: [orderId], references: [id])
   payment   Payment? @relation(fields: [paymentId], references: [id])
+  user      User?    @relation(fields: [userId], references: [id])
 
   @@index([entity, entityId])
   @@index([orderId])
+  @@index([userId])
 }
 
 enum UserRole {
@@ -212,14 +215,15 @@ enum UserRole {
 }
 
 model User {
-  id           String    @id @default(cuid())
-  email        String    @unique
+  id           String     @id @default(cuid())
+  email        String     @unique
   passwordHash String
   name         String
-  role         UserRole  @default(SALES)
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  role         UserRole   @default(SALES)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
   deletedAt    DateTime?
+  auditLogs    AuditLog[]
 
   @@index([deletedAt])
   @@index([email])

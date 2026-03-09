@@ -52,29 +52,6 @@ export function createPayment(data: {
   return prisma.payment.create({ data });
 }
 
-export function createPaymentAuditLog(
-  paymentId: string,
-  orderId: string,
-  method: PaymentMethod,
-  type: PaymentType,
-  amount: number
-) {
-  return prisma.auditLog.create({
-    data: {
-      entity: "Payment",
-      entityId: paymentId,
-      action: "PAYMENT_CREATED",
-      newValue: String(amount),
-      orderId: orderId,
-      paymentId: paymentId,
-      metadata: {
-        method: method,
-        type: type,
-      },
-    },
-  });
-}
-
 export function findById(id: string) {
   return prisma.payment.findFirst({ where: { id } });
 }

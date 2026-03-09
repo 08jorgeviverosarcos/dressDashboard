@@ -5,6 +5,8 @@ import { revalidatePath } from "next/cache";
 import type { ActionResult } from "@/types";
 import type { ExpenseType } from "@prisma/client";
 import * as service from "@/features/expenses/expenses.service";
+import { verifySession } from "@/lib/dal";
+import * as auditRepo from "@/features/audit/audit.repo";
 
 export async function getExpenses(filters?: {
   search?: string;
@@ -21,6 +23,7 @@ export async function getExpense(id: string) {
 }
 
 export async function createExpense(data: ExpenseFormData): Promise<ActionResult<{ id: string }>> {
+  const session = await verifySession();
   const parsed = expenseSchema.safeParse(data);
   if (!parsed.success) {
     return { success: false, error: parsed.error.issues[0].message };
@@ -28,6 +31,13 @@ export async function createExpense(data: ExpenseFormData): Promise<ActionResult
 
   const result = await service.createExpense(parsed.data);
   if (result.success) {
+    await auditRepo.createAuditLog({
+      entity: "Expense",
+      entityId: result.data.id,
+      action: "CREATED",
+      userId: session.userId,
+      newValue: JSON.stringify(parsed.data),
+    });
     revalidatePath("/gastos");
     if (result.orderId) revalidatePath(`/pedidos/${result.orderId}`);
   }
@@ -35,6 +45,7 @@ export async function createExpense(data: ExpenseFormData): Promise<ActionResult
 }
 
 export async function updateExpense(id: string, data: ExpenseFormData): Promise<ActionResult> {
+  const session = await verifySession();
   const parsed = expenseSchema.safeParse(data);
   if (!parsed.success) {
     return { success: false, error: parsed.error.issues[0].message };
@@ -42,6 +53,13 @@ export async function updateExpense(id: string, data: ExpenseFormData): Promise<
 
   const result = await service.updateExpense(id, parsed.data);
   if (result.success) {
+    await auditRepo.createAuditLog({
+      entity: "Expense",
+      entityId: id,
+      action: "UPDATED",
+      userId: session.userId,
+      newValue: JSON.stringify(parsed.data),
+    });
     revalidatePath("/gastos");
     revalidatePath(`/gastos/${id}`);
     if (result.orderId) revalidatePath(`/pedidos/${result.orderId}`);
@@ -50,7 +68,16 @@ export async function updateExpense(id: string, data: ExpenseFormData): Promise<
 }
 
 export async function deleteExpense(id: string): Promise<ActionResult> {
+  const session = await verifySession();
   const result = await service.deleteExpense(id);
-  if (result.success) revalidatePath("/gastos");
+  if (result.success) {
+    await auditRepo.createAuditLog({
+      entity: "Expense",
+      entityId: id,
+      action: "DELETED",
+      userId: session.userId,
+    });
+    revalidatePath("/gastos");
+  }
   return result;
 }
