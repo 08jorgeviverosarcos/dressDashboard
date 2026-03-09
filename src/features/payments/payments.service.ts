@@ -21,7 +21,8 @@ export function getPayment(id: string) {
 }
 
 export async function createPayment(
-  parsed: PaymentFormData
+  parsed: PaymentFormData,
+  userId?: string
 ): Promise<ActionResult<{ id: string }>> {
   const order = await repo.findOrderWithPayments(parsed.orderId);
 
@@ -58,19 +59,11 @@ export async function createPayment(
   );
 
   if (newStatus !== order.status) {
-    const statusResult = await ordersService.updateOrderStatus(order.id, newStatus);
+    const statusResult = await ordersService.updateOrderStatus(order.id, newStatus, userId);
     if (!statusResult.success) {
       return { success: false, error: statusResult.error };
     }
   }
-
-  await repo.createPaymentAuditLog(
-    payment.id,
-    order.id,
-    parsed.paymentMethod,
-    parsed.paymentType,
-    parsed.amount
-  );
 
   return { success: true, data: { id: payment.id } };
 }

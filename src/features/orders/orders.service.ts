@@ -37,14 +37,6 @@ export async function createOrder(
     }
   }
 
-  await repo.createAuditLog({
-    entity: "Order",
-    entityId: order.id,
-    action: "CREATED",
-    newValue: "QUOTE",
-    orderId: order.id,
-  });
-
   return { success: true, data: { id: order.id } };
 }
 
@@ -61,7 +53,8 @@ export async function updateOrder(
 
 export async function updateOrderStatus(
   id: string,
-  newStatus: OrderStatus
+  newStatus: OrderStatus,
+  userId?: string
 ): Promise<ActionResult> {
   const order = await repo.findByIdSimple(id);
   if (!order) {
@@ -128,7 +121,8 @@ export async function updateOrderStatus(
     newStatus,
     order.status,
     stockAdjustments,
-    unitStatusUpdates
+    unitStatusUpdates,
+    userId
   );
 
   return { success: true, data: undefined };

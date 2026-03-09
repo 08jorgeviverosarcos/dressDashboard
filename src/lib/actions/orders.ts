@@ -5,6 +5,8 @@ import { revalidatePath } from "next/cache";
 import type { ActionResult } from "@/types";
 import type { OrderStatus } from "@prisma/client";
 import * as service from "@/features/orders/orders.service";
+import { verifySession } from "@/lib/dal";
+import * as auditRepo from "@/features/audit/audit.repo";
 
 // Pattern: translate expected persistence failures into ActionResult user messages.
 // This keeps UI flows stable and avoids uncaught exceptions in form submits.
@@ -59,6 +61,7 @@ export async function getOrder(id: string) {
 }
 
 export async function createOrder(data: OrderFormData): Promise<ActionResult<{ id: string }>> {
+  const session = await verifySession();
   const parsed = orderSchema.safeParse(data);
   if (!parsed.success) {
     return { success: false, error: parsed.error.issues[0].message };
@@ -66,7 +69,17 @@ export async function createOrder(data: OrderFormData): Promise<ActionResult<{ i
 
   try {
     const result = await service.createOrder(parsed.data);
-    if (result.success) revalidatePath("/pedidos");
+    if (result.success) {
+      await auditRepo.createAuditLog({
+        entity: "Order",
+        entityId: result.data.id,
+        action: "CREATED",
+        newValue: "QUOTE",
+        orderId: result.data.id,
+        userId: session.userId,
+      });
+      revalidatePath("/pedidos");
+    }
     return result;
   } catch (error) {
     return { success: false, error: mapCreateOrderPersistenceError(error) };
@@ -74,6 +87,7 @@ export async function createOrder(data: OrderFormData): Promise<ActionResult<{ i
 }
 
 export async function updateOrder(id: string, data: OrderFormData): Promise<ActionResult> {
+  const session = await verifySession();
   const parsed = orderSchema.safeParse(data);
   if (!parsed.success) {
     return { success: false, error: parsed.error.issues[0].message };
@@ -81,6 +95,14 @@ export async function updateOrder(id: string, data: OrderFormData): Promise<Acti
 
   const result = await service.updateOrder(id, parsed.data);
   if (result.success) {
+    await auditRepo.createAuditLog({
+      entity: "Order",
+      entityId: id,
+      action: "UPDATED",
+      orderId: id,
+      userId: session.userId,
+      newValue: JSON.stringify(parsed.data),
+    });
     revalidatePath("/pedidos");
     revalidatePath(`/pedidos/${id}`);
   }
@@ -91,7 +113,8 @@ export async function updateOrderStatus(
   id: string,
   newStatus: OrderStatus
 ): Promise<ActionResult> {
-  const result = await service.updateOrderStatus(id, newStatus);
+  const session = await verifySession();
+  const result = await service.updateOrderStatus(id, newStatus, session.userId);
   if (result.success) {
     revalidatePath("/pedidos");
     revalidatePath(`/pedidos/${id}`);
@@ -100,8 +123,18 @@ export async function updateOrderStatus(
 }
 
 export async function deleteOrder(id: string): Promise<ActionResult> {
+  const session = await verifySession();
   const result = await service.deleteOrder(id);
-  if (result.success) revalidatePath("/pedidos");
+  if (result.success) {
+    await auditRepo.createAuditLog({
+      entity: "Order",
+      entityId: id,
+      action: "DELETED",
+      orderId: id,
+      userId: session.userId,
+    });
+    revalidatePath("/pedidos");
+  }
   return result;
 }
 
@@ -110,8 +143,16 @@ export async function getOrderItem(id: string) {
 }
 
 export async function deleteOrderItem(id: string): Promise<ActionResult<{ orderId: string }>> {
+  const session = await verifySession();
   const result = await service.deleteOrderItem(id);
   if (result.success) {
+    await auditRepo.createAuditLog({
+      entity: "OrderItem",
+      entityId: id,
+      action: "DELETED",
+      orderId: result.data.orderId,
+      userId: session.userId,
+    });
     revalidatePath("/pedidos");
     revalidatePath(`/pedidos/${result.data.orderId}`);
   }
@@ -122,6 +163,7 @@ export async function updateOrderItem(
   id: string,
   data: unknown
 ): Promise<ActionResult<{ orderId: string }>> {
+  const session = await verifySession();
   const parsed = orderItemSchema.safeParse(data);
   if (!parsed.success) {
     return { success: false, error: parsed.error.issues[0].message };
@@ -129,6 +171,14 @@ export async function updateOrderItem(
 
   const result = await service.updateOrderItem(id, parsed.data);
   if (result.success) {
+    await auditRepo.createAuditLog({
+      entity: "OrderItem",
+      entityId: id,
+      action: "UPDATED",
+      orderId: result.data.orderId,
+      userId: session.userId,
+      newValue: JSON.stringify(parsed.data),
+    });
     revalidatePath("/pedidos");
     revalidatePath(`/pedidos/${result.data.orderId}`);
   }

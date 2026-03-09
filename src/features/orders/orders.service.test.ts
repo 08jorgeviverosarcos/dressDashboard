@@ -41,7 +41,8 @@ describe("orders.service.updateOrderStatus", () => {
       [
         { inventoryItemId: "u1", status: "RESERVED" },
         { inventoryItemId: "u2", status: "RESERVED" },
-      ]
+      ],
+      undefined
     );
   });
 
@@ -66,7 +67,8 @@ describe("orders.service.updateOrderStatus", () => {
       "CANCELLED",
       "CONFIRMED",
       [{ inventoryItemId: "q9", delta: 3 }],
-      [{ inventoryItemId: "u9", status: "AVAILABLE" }]
+      [{ inventoryItemId: "u9", status: "AVAILABLE" }],
+      undefined
     );
   });
 
@@ -92,7 +94,8 @@ describe("orders.service.updateOrderStatus", () => {
       [
         { inventoryItemId: "u-sale", status: "SOLD" },
         { inventoryItemId: "u-rental", status: "RENTED" },
-      ]
+      ],
+      undefined
     );
   });
 });
