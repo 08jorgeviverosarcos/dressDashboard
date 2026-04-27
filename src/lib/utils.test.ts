@@ -81,6 +81,11 @@ describe("formatDate", () => {
     const result = formatDate("2026-03-15T10:00:00");
     expect(result).toBe("15/03/2026");
   });
+
+  it("formats a UTC ISO string without timezone day shift", () => {
+    const result = formatDate("2026-04-24T00:00:00.000Z");
+    expect(result).toBe("24/04/2026");
+  });
 });
 
 describe("formatDateTime", () => {
@@ -88,13 +93,13 @@ describe("formatDateTime", () => {
     expect(formatDateTime(null)).toBe("");
   });
 
-  it("formats a Date object with time", () => {
-    const result = formatDateTime(new Date(2026, 1, 22, 14, 30));
+  it("formats a UTC Date object with time", () => {
+    const result = formatDateTime(new Date("2026-02-22T14:30:00.000Z"));
     expect(result).toBe("22/02/2026 14:30");
   });
 
-  it("formats an ISO string with time", () => {
-    const result = formatDateTime("2026-03-15T10:45:00");
+  it("formats a UTC ISO string with time", () => {
+    const result = formatDateTime("2026-03-15T10:45:00.000Z");
     expect(result).toContain("15/03/2026");
     expect(result).toContain("10:45");
   });
