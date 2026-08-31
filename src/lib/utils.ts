@@ -40,3 +40,17 @@ export function toDecimalNumber(value: unknown): number {
   if (typeof value === "number") return value;
   return parseFloat(String(value)) || 0;
 }
+
+export function formatCompactCurrency(value: number): string {
+  const abs = Math.abs(value);
+  const sign = value < 0 ? "-" : "";
+
+  if (abs >= 1_000_000) return `${sign}$${(abs / 1_000_000).toFixed(abs >= 10_000_000 ? 0 : 1)}M`;
+  if (abs >= 1_000) return `${sign}$${Math.round(abs / 1_000)}k`;
+  return `${sign}$${Math.round(abs)}`;
+}
+
+export function formatPercent(value: number | null, digits = 0): string {
+  if (value == null || !Number.isFinite(value)) return "—";
+  return `${value.toFixed(digits)}%`;
+}
