@@ -1,7 +1,12 @@
-/* prisma_import.ts
+/* scripts/prisma_import.ts
    Importa los JSON generados por export_excel_to_json.py hacia Postgres usando Prisma.
+
    Uso:
-     pnpm tsx prisma_import.ts --dir ./data
+     pnpm tsx scripts/prisma_import.ts --dir ./data
+
+   El script inserta en masa y NO es idempotente: correrlo dos veces sobre la misma
+   base duplica el negocio entero. Por eso aborta si DATABASE_URL no apunta a una
+   base local o si la base ya tiene datos. `--force` salta ambas verificaciones.
 */
 import { PrismaClient, type Prisma } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
@@ -9,12 +14,49 @@ import "dotenv/config";
 import fs from "node:fs";
 import path from "node:path";
 
-type Args = { dir: string };
+type Args = { dir: string; force: boolean };
 type JsonRecord = Record<string, unknown>;
 function parseArgs(): Args {
   const idx = process.argv.indexOf("--dir");
-  if (idx === -1 || !process.argv[idx + 1]) throw new Error("Uso: --dir <carpeta>");
-  return { dir: process.argv[idx + 1] };
+  if (idx === -1 || !process.argv[idx + 1]) {
+    throw new Error("Uso: --dir <carpeta> [--force]");
+  }
+  return { dir: process.argv[idx + 1], force: process.argv.includes("--force") };
+}
+
+function isLocalDatabase(url: string): boolean {
+  try {
+    const { hostname } = new URL(url);
+    return hostname === "localhost" || hostname === "127.0.0.1" || hostname === "::1";
+  } catch {
+    return false;
+  }
+}
+
+async function assertSafeToImport(force: boolean): Promise<void> {
+  const url = process.env.DATABASE_URL;
+  if (!url) throw new Error("DATABASE_URL no está definida.");
+
+  if (!isLocalDatabase(url) && !force) {
+    throw new Error(
+      "DATABASE_URL no apunta a una base local. Este script inserta en masa y duplicaría " +
+        "todos los datos si corre contra producción. Si es realmente lo que quieres, " +
+        "repite el comando con --force."
+    );
+  }
+
+  const [clients, orders, products] = await Promise.all([
+    prisma.client.count(),
+    prisma.order.count(),
+    prisma.product.count(),
+  ]);
+
+  if (clients + orders + products > 0 && !force) {
+    throw new Error(
+      `La base ya tiene datos (clientes: ${clients}, pedidos: ${orders}, productos: ${products}). ` +
+        "Importar encima duplicaría los registros. Vacía la base primero o repite con --force."
+    );
+  }
 }
 function readJson<T>(dir: string, name: string): T {
   const p = path.join(dir, `${name}.json`);
@@ -51,7 +93,9 @@ function normalizeOrderStatus(status: unknown): string {
 }
 
 async function main() {
-  const { dir } = parseArgs();
+  const { dir, force } = parseArgs();
+
+  await assertSafeToImport(force);
 
   const clients = readJson<JsonRecord[]>(dir, "clients");
   const categories = readJson<JsonRecord[]>(dir, "categories");
